@@ -1,0 +1,14 @@
+{
+  "name": "JustLikeMyNative",
+  "short_name": "JustLikeMyNative",
+  "description": "Bulmacalar ve aralıklı tekrarla İngilizce kelime öğren.",
+  "lang": "tr",
+  "start_url": "JustLikeMyNative.html#bugun",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f3ee",
+  "theme_color": "#2f6f5e",
+  "icons": [
+    { "src": "app/ikon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

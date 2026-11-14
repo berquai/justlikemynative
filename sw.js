@@ -1,7 +1,7 @@
 // AnadilimGibi — çevrimdışı çalışma için önbellek
 // Önce önbellekten açar (hızlı ve internetsiz), arka planda yenisini indirip bir sonraki açılışta kullanır.
 // Her yayında sürüm numarasını bir artır (jlmn-v2 → jlmn-v3 …).
-const ONBELLEK = 'jlmn-v10';
+const ONBELLEK = 'jlmn-v11';
 const DOSYALAR = ['./', 'index.html', 'JustLikeMyNative.html', 'gizlilik.html', 'kosullar.html', 'manifest.webmanifest', 'app/stil.css',
   'app/ikon.svg', 'app/ikon-180.png', 'app/ikon-192.png', 'app/ikon-512.png', 'app/ikon-maskable-512.png',
   'app/kelimeler.js', 'app/bulmaca.js', 'app/tema.js', 'app/sozluk.js', 'app/istatistik.js', 'app/madalya.js',

@@ -1,4 +1,4 @@
-// JustLikeMyNative — rozet madalyaları (7 seviye, SVG)
+// AnadilimGibi — rozet madalyaları (7 seviye, SVG)
 // Copyright (C) 2026 Berkay Çelik
 // Seviye ilerledikçe biçim, malzeme ve süs zenginleşir:
 // 1 Taş · 2 Bronz · 3 Gümüş · 4 Altın · 5 Platin · 6 Elmas · 7 Efsane

@@ -1,4 +1,4 @@
-// JustLikeMyNative — Rozetler, başarılar, şeref tribünü ve kutlamalar
+// AnadilimGibi — Rozetler, başarılar, Şeref Tribünü ve kutlamalar
 // Copyright (C) 2026 Berkay Çelik
 'use strict';
 
@@ -11,7 +11,7 @@ const Basari = (() => {
       kademe: [[10, 'İlk tuğlalar'], [50, 'Sağlam duvar'], [100, 'Yüz pekişmiş'], [250, 'Kale'], [500, 'Hafıza sarayı'], [1000, 'Bin pekişmiş']] },
     { id: 'usta', ikon: '🎓', ad: 'Ustalık', acik: n => `${n} kelimede ustalaş (180 günlük aralığı geç)`, deger: S => S.ustaToplam,
       kademe: [[10, 'Çırak'], [50, 'Kalfa'], [100, 'Usta'], [500, 'Üstat']] },
-    { id: 'seref', ikon: '🏆', ad: 'Şeref tribünü', acik: n => `${n} kelimeyi şeref tribününe çıkar (1 yıl sonra da bil)`, deger: S => S.say.seref,
+    { id: 'seref', ikon: '🏆', ad: 'Şeref Tribünü', acik: n => `${n} kelimeyi Şeref Tribünü'ne çıkar (bir yıl sonra da hatırla)`, deger: S => S.say.seref,
       kademe: [[1, 'Tribünün ilk konuğu'], [10, 'Onur listesi'], [50, 'Altın tribün'], [100, 'Yüzlerin onuru'], [500, 'Efsane']] },
     // Toplam çalışılan gün sayısı (art arda olması gerekmez; ara vermek hiçbir şeyi bozmaz)
     { id: 'seri', ikon: '📅', ad: 'Çalışma günleri', acik: n => `Toplam ${n} gün çalış (art arda olması gerekmez)`, deger: S => S.seri.gunSayisi,
@@ -22,12 +22,12 @@ const Basari = (() => {
       kademe: [[1, 'Pırlanta gün'], [5, 'Beş pırlanta'], [20, 'Mücevher kutusu']] },
     { id: 'maraton', ikon: '🏃', ad: 'Maraton', acik: n => `Bir günde ${n} cevap ver`, deger: S => S.maxGun,
       kademe: [[100, 'Yarı maraton'], [200, 'Maraton'], [400, 'Ultra maraton']] },
-    { id: 'kagit', ikon: '📝', ad: 'Kalemle çöz', acik: n => `${n} kağıt bulmacanın sonucunu gir`, deger: S => S.kagitNot,
-      kademe: [[1, 'İlk kağıt'], [5, 'Kalem ısındı'], [10, 'On kağıt'], [25, 'Bulmaca tutkunu'], [50, 'Elli kağıt'], [100, 'Bulmaca ustası'], [200, 'Kağıt kurdu']] },
+    { id: 'kagit', ikon: '📝', ad: 'Yazdır-Çöz', acik: n => `${n} kâğıt bulmacanın sonucunu gir`, deger: S => S.kagitNot,
+      kademe: [[1, 'İlk kâğıt'], [5, 'Kalem ısındı'], [10, 'On kâğıt'], [25, 'Bulmaca tutkunu'], [50, 'Elli kâğıt'], [100, 'Bulmaca ustası'], [200, 'Kâğıt kurdu']] },
     { id: 'sozlukcu', ikon: '📖', ad: 'Sözlükçü', acik: n => `Sözlüğe kendin ${n} kelime ekle`, deger: S => S.ekle,
       kademe: [[1, 'İlk kendi kelimen'], [5, 'Not defteri'], [10, 'Koleksiyoncu'], [25, 'Kelime avcısı'], [50, 'Sözlük yazarı'], [100, 'Lügatçi'], [250, 'Sözlük editörü'], [500, 'Ansiklopedist']] },
-    { id: 'adam', ikon: '🪢', ad: 'Adam asmaca', acik: n => `Adam asmacada ${n} kez kazan`, deger: S => S.adam,
-      kademe: [[1, 'İlk kurtarış'], [5, 'İp cambazı'], [10, 'Cellat korkusu'], [25, 'Kurtarıcı'], [50, 'Kelime kahramanı'], [100, 'Asılmaz'], [250, 'İpin efendisi'], [500, 'Efsane kurtarıcı']] },
+    { id: 'adam', ikon: '🌸', ad: 'Çiçek büyüt', acik: n => `Çiçek büyüt oyununda ${n} çiçek aç`, deger: S => S.adam,
+      kademe: [[1, 'İlk filiz'], [5, 'Saksı dolusu'], [10, 'Küçük bahçe'], [25, 'Çiçek tarhı'], [50, 'Bahçıvan'], [100, 'Gül bahçesi'], [250, 'Botanik bahçesi'], [500, 'Bahar perisi']] },
     { id: 'harf', ikon: '🔤', ad: 'Karışık harfler', acik: n => `Karışık harflerde ${n} doğru yap`, deger: S => S.harf,
       kademe: [[10, 'Harf çözücü'], [25, 'Harf avcısı'], [50, 'Karmaşa çözen'], [100, 'Anagram ustası'], [250, 'Harf sihirbazı'], [500, 'Anagram üstadı'], [1000, 'Bin anagram']] },
     { id: 'esles', ikon: '🧩', ad: 'Kelime eşleştirme', acik: n => `Eşleştirme oyununda ${n} turu hatasız bitir`, deger: S => S.esles,
@@ -38,6 +38,19 @@ const Basari = (() => {
       kademe: [[1, 'Erkenci kuş'], [5, 'Gün doğumu'], [15, 'Sabah sporcusu'], [30, 'Şafak bekçisi'], [60, 'Horozla yarışan'], [100, 'Güneşi uyandıran']] },
     { id: 'haftasonu', ikon: '🎒', ad: 'Hafta sonu savaşçısı', acik: n => `${n} hafta sonunun iki gününde de çalış`, deger: S => S.haftaSonu,
       kademe: [[1, 'Hafta sonu savaşçısı'], [4, 'Bir ayın hafta sonları'], [10, 'Tatil bilmez'], [26, 'Yarım yılın hafta sonları'], [52, 'Bir yılın hafta sonları']] },
+    { id: 'parcacik', ikon: '🧲', ad: 'Parçacık Tamamlama', acik: n => `Parçacık Tamamlama oyununda ${n} doğru yap`, deger: () => P.oyun.parcacik || 0,
+      kademe: [[10, 'Parçacık avcısı'], [25, 'Fiil ustası'], [50, 'Phrasal çözücü'], [100, 'Yüz parçacık'], [250, 'Phrasal ustası'], [500, 'Phrasal efsanesi']] },
+    // Etüt Köşesi: birikimli süre ve etüt alışkanlıkları
+    { id: 'etut', ikon: '⏳', ad: 'Etüt Köşesi', acik: n => `Toplam ${n} saat etüt yap`, deger: () => etutIstat().saat,
+      kademe: [[1, 'İlk saat'], [10, 'On saat'], [50, 'Elli saat'], [100, 'Yüz saat'], [250, 'İki yüz elli saat'], [500, 'Beş yüz saat'], [1000, 'Bin saat']] },
+    { id: 'etutSabah', ikon: '☀️', ad: 'Sabah etüdü', acik: n => `${n} farklı sabah 05:00–09:00 arasında etüt yap`, deger: () => etutIstat().sabah,
+      kademe: [[1, 'İlk sabah etüdü'], [5, 'Sabahçı'], [15, 'Şafakta masa başında'], [30, 'Sabah disiplini'], [60, 'Sabahların ustası']] },
+    { id: 'etutGece', ikon: '🌙', ad: 'Gece etüdü', acik: n => `${n} farklı gece 22:00–02:00 arasında etüt yap`, deger: () => etutIstat().gece,
+      kademe: [[1, 'İlk gece etüdü'], [5, 'Gece mesaisi'], [15, 'Lamba ışığında'], [30, 'Gece disiplini'], [60, 'Gecelerin ustası']] },
+    { id: 'etutHafta', ikon: '📚', ad: 'Hafta sonu etüdü', acik: n => `${n} hafta sonu gününde etüt yap`, deger: () => etutIstat().haftaSonu,
+      kademe: [[1, 'İlk hafta sonu etüdü'], [4, 'Bir ayın hafta sonları'], [10, 'Hafta sonu azmi'], [26, 'Yarım yılın etüdü'], [52, 'Bir yılın etüdü']] },
+    { id: 'etutSeri', ikon: '🔗', ad: 'Etüt serisi', acik: n => `${n} gün art arda etüt yap`, deger: () => etutIstat().enUzun,
+      kademe: [[3, 'Üç gün art arda'], [7, 'Bir hafta'], [14, 'İki hafta'], [30, 'Bir ay'], [60, 'İki ay'], [100, 'Yüz gün']] },
   ];
   const ROZETLER = GRUPLAR.flatMap(g => g.kademe.map(([hedef, ad], i) => ({
     id: `${g.id}-${hedef}`, grup: g, hedef, ad, kademe: Madalya.seviye(i, g.kademe.length), acik: g.acik(hedef),
@@ -95,7 +108,7 @@ const Basari = (() => {
   return { ROZETLER, GRUPLAR, kontrol, simdiKontrol, rozetIkon, kutla };
 })();
 
-/* ---------- Başarılar ekranı: Rozetlerim · Başarılarım · Şeref tribünü ---------- */
+/* ---------- Başarılar ekranı: Rozetlerim · Başarılarım · Şeref Tribünü ---------- */
 let basariSekme = 'rozet';
 function ekranBasari(sekme) {
   if (sekme) basariSekme = sekme;
@@ -104,9 +117,9 @@ function ekranBasari(sekme) {
   ana().innerHTML = `
   <section class="panel">
     <h1>Başarılar</h1>
-    <p class="soluk">${kazanilan} / ${Basari.ROZETLER.length} rozet · şeref tribününde ${tribun} kelime</p>
+    <p class="soluk">${kazanilan} / ${Basari.ROZETLER.length} rozet · Şeref Tribünü'nde ${tribun} kelime</p>
     <div class="sekmeler" role="tablist">
-      ${[['rozet', 'Rozetlerim'], ['zaman', 'Başarılarım'], ['tribun', '🏆 Şeref tribünü']].map(([k, ad]) =>
+      ${[['rozet', 'Rozetlerim'], ['zaman', 'Başarılarım'], ['tribun', '🏆 Şeref Tribünü']].map(([k, ad]) =>
         `<button role="tab" aria-selected="${basariSekme === k}" class="${basariSekme === k ? 'aktif' : ''}" data-sekme="${k}">${ad}</button>`).join('')}
     </div>
   </section>
@@ -141,7 +154,7 @@ function zamanCiz() {
   const olaylar = [];
   for (const r of Basari.ROZETLER) if (P.rozet[r.id]) olaylar.push({ d: P.rozet[r.id], html: `${Basari.rozetIkon(r, true)}<div><b>${esc(r.ad)}</b><small>${esc(r.acik)}</small></div>` });
   for (const [id, w] of Object.entries(P.w)) if (w.seref && KID.has(id))
-    olaylar.push({ d: w.seref, html: `<span class="rozet-ikon">${Madalya.svg(7, '🏆')}</span><div><b>${esc(KID.get(id).w)}</b><small>şeref tribününe çıktı</small></div>` });
+    olaylar.push({ d: w.seref, html: `<span class="rozet-ikon">${Madalya.svg(7, '🏆')}</span><div><b>${esc(KID.get(id).w)}</b><small>Şeref Tribünü'ne çıktı</small></div>` });
   const ilk = Object.keys(P.gun).filter(d => P.gun[d].r).sort()[0];
   if (ilk) olaylar.push({ d: ilk, html: `<span class="rozet-ikon">${Madalya.svg(1, '🚀')}</span><div><b>Yolculuk başladı</b><small>İlk çalışma günün</small></div>` });
   olaylar.sort((a, b) => b.d.localeCompare(a.d));
@@ -162,10 +175,10 @@ function tribunCiz() {
     .filter(x => x.min >= 5).sort((a, b) => b.min - a.min).slice(0, 8);
   $('#basariIcerik').innerHTML = `<section class="panel tribun">
     <div class="tribun-ust"><span class="tribun-kupa" aria-hidden="true">🏆</span>
-      <div><h2>Şeref tribünü</h2><p class="soluk">1, 3, 7, 14, 30, 60, 180 ve 360 günlük tekrarların hepsini üç yönde de geçen kelimeler burada oturur. Artık peşlerini bıraktık — bir yıl sonra bile biliyorsun.</p></div></div>
+      <div><h2>Şeref Tribünü</h2><p class="soluk">Üç alıştırma türünde de 360 günlük tekrarını doğru cevapladığın kelimeler burada yer alır ve artık sorulmaz. Bunlar, bir yıl sonra bile hatırladığın kelimeler.</p></div></div>
     ${l.length ? `<ul class="tribun-liste">${l.map(([id, w]) => `<li><button class="link" data-detay="${esc(id)}"><b>${esc(KID.get(id).w)}</b></button>
         <span class="soluk">${esc(KID.get(id).tr)}</span><small>${new Date(w.seref + 'T12:00').toLocaleDateString('tr-TR')}</small></li>`).join('')}</ul>`
-      : `<p class="bos-durum">Tribün şimdilik boş. İlk konuğu ağırlamak için bir kelimeyi 360 günlük tekrarında da bilmen gerekiyor.</p>`}
+      : `<p class="bos-durum">Tribün şimdilik boş. İlk konuğu ağırlamak için bir kelimenin 360 günlük tekrarını da doğru cevaplaman gerekiyor.</p>`}
     ${aday.length ? `<h3>Tribüne en yakın adaylar</h3><ul class="aday-liste">${aday.map(x => `<li><button class="link" data-detay="${esc(x.id)}">${esc(KID.get(x.id).w)}</button> <span class="soluk">— en zayıf yönü ${ARALIK[Math.min(x.min, 8)]} günlük aralıkta</span></li>`).join('')}</ul>` : ''}
   </section>`;
   document.querySelectorAll('[data-detay]').forEach(b => b.onclick = () => kelimeDetay(b.dataset.detay));

@@ -1,4 +1,4 @@
-// JustLikeMyNative — İstatistikler
+// AnadilimGibi — İstatistikler
 // Copyright (C) 2026 Berkay Çelik
 'use strict';
 
@@ -126,10 +126,10 @@ function ekranIstatistik() {
   <section class="panel">
     <h1>İstatistikler</h1>
     <div class="stat-izgara buyuk">
-      ${kart(sayi(S.toplam), 'toplam kelime', `${sayi(S.excel)} Excel'den · ${sayi(S.ekle)} eklediğin`)}
+      ${kart(sayi(S.toplam), 'toplam kelime', `${sayi(S.excel)} hazır listeden · ${sayi(S.ekle)} eklediğin`)}
       ${kart(sayi(S.tanisilan), 'tanıştığın kelime', yuzde(S.tanisilan, S.toplam) + ' listenin')}
       ${kart(sayi(S.pekisenToplam), 'pekişen kelime', `${sayi(S.ustaToplam)} ustalaşan`)}
-      ${kart(sayi(S.say.seref), 'şeref tribününde', '1 yıl sonra da bilinen')}
+      ${kart(sayi(S.say.seref), 'Şeref Tribünü\'nde', 'bir yıl sonra da hatırlanan')}
     </div>
   </section>
 
@@ -163,8 +163,8 @@ function ekranIstatistik() {
       ${kart(S.seri.simdiki + ' 🔥', 'mevcut seri', `en uzun: ${S.seri.enUzun} gün`)}
       ${kart(S.seri.gunSayisi ? Math.round(S.cevap / S.seri.gunSayisi) : 0, 'günlük ort. cevap')}
       ${kart(sayi(S.kusursuz), 'kusursuz gün', '≥20 cevap, hepsi doğru')}
-      ${kart(`${S.kagitNot}/${S.kagitUret}`, 'Kalemle Çöz', 'sonucu girilen / üretilen bulmaca')}
-      ${kart(`${S.adam} · ${S.harf} · ${S.esles}`, 'oyun', 'adam asmaca · karışık harf · kusursuz eşleştirme')}
+      ${kart(`${S.kagitNot}/${S.kagitUret}`, 'Yazdır-Çöz', 'sonucu girilen / üretilen bulmaca')}
+      ${kart(`${S.adam} · ${S.harf} · ${S.esles}`, 'oyun', 'açan çiçek · karışık harf · kusursuz eşleştirme')}
     </div>
     <h3>Yönlere göre doğruluk</h3>
     ${S.mod.r.n + S.mod.c.n + S.mod.p.n ? `<div class="metreler">${metre('Anlama (İng → Tr)', S.mod.r)}${metre('Bağlam (boşluklu cümle)', S.mod.c)}${metre('Üretme (Tr/tanım → İng)', S.mod.p)}</div>`

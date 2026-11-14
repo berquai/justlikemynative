@@ -1,4 +1,4 @@
-// JustLikeMyNative — bulut eşitleme (Google Drive ve GitHub)
+// AnadilimGibi — bulut eşitleme (Google Drive ve GitHub)
 // Copyright (C) 2026 Berkay Çelik
 //
 // İlerleme (P) kullanıcının KENDİ hesabında tutulur:
@@ -135,7 +135,7 @@ const Bulut = (() => {
     async function olustur(metin) {
       const sinir = 'jlmn' + Date.now();
       const govde = `--${sinir}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
-        JSON.stringify({ name: DOSYA, mimeType: 'application/json', description: 'JustLikeMyNative ilerlemen. Uygulama tarafından otomatik güncellenir; silme ya da adını değiştirme.' }) +
+        JSON.stringify({ name: DOSYA, mimeType: 'application/json', description: 'AnadilimGibi ilerlemen. Uygulama tarafından otomatik güncellenir; silme ya da adını değiştirme.' }) +
         `\r\n--${sinir}\r\nContent-Type: application/json\r\n\r\n${metin}\r\n--${sinir}--`;
       const r = await getir(`${API}/upload/drive/v3/files?uploadType=multipart&fields=id`, { method: 'POST', headers: basliklar({ 'Content-Type': 'multipart/related; boundary=' + sinir }), body: govde }, 'Google Drive');
       const id = (await r.json()).id;
@@ -233,7 +233,7 @@ const Bulut = (() => {
         e.sifirla();
         if (g) { a.id = g.id; sakla(); await e.esitle(); }
         else {
-          const y = await istek('/gists', { method: 'POST', body: JSON.stringify({ description: 'JustLikeMyNative ilerleme (uygulama tarafından otomatik güncellenir)', public: false, files: { [DOSYA]: { content: JSON.stringify(P) } } }) });
+          const y = await istek('/gists', { method: 'POST', body: JSON.stringify({ description: 'AnadilimGibi ilerleme (uygulama tarafından otomatik güncellenir)', public: false, files: { [DOSYA]: { content: JSON.stringify(P) } } }) });
           a.id = y.id; sakla(); e.sonYaz(P.updated);
           e.durumla('GitHub\'da ilerleme kaydın oluşturuldu. Diğer cihazlarında da aynı şekilde bağlan.', false);
         }
@@ -251,7 +251,7 @@ const Bulut = (() => {
           <p class="soluk kucuk">İlerlemen GitHub hesabındaki gizli bir Gist'te tutuluyor.</p>
           <div class="butonlar"><button class="ana-btn" id="bEsitle">Şimdi eşitle</button><button class="btn" id="bKes">Bağlantıyı kes</button></div>${d}`
         : `<ol class="kucuk">
-            <li>GitHub'a giriş yapıp <a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=JustLikeMyNative" target="_blank" rel="noopener">bu sayfada</a>
+            <li>GitHub'a giriş yapıp <a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=AnaDilimGibi" target="_blank" rel="noopener">bu sayfada</a>
               yalnızca <b>gist</b> izni olan bir erişim anahtarı (token) oluştur.</li>
             <li>Anahtarı aşağıya yapıştır. Her cihazda bir kez yapman yeterli.</li>
           </ol>

@@ -1,4 +1,4 @@
-// Metin yardımcıları + kağıt bulmaca üreticileri (çengel, harf yerleştirme, sözcük avı)
+// Metin yardımcıları + kâğıt bulmaca üreticileri (çengel, harf yerleştirme, sözcük avı)
 'use strict';
 
 const Metin = (() => {

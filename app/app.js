@@ -1,8 +1,11 @@
-// JustLikeMyNative — ana uygulama
+// AnadilimGibi — ana uygulama
 // Copyright (C) 2026 Berkay Çelik
 'use strict';
 
-const UYGULAMA = { ad: 'JustLikeMyNative', surum: '1.3.0', yil: '2026', yazar: 'Berkay Çelik', instagram: 'berkay.celik52' };
+// Ziyaretçi sayacı (GoatCounter): çerez kullanmaz, kişisel veri saklamaz. Yalnızca canlı sitede çalışır.
+// Hesap kodu https://<kod>.goatcounter.com adresindeki <kod>dur; boş bırakılırsa sayaç hiç yüklenmez.
+const ZIYARET_SAYACI = { kod: 'anadilimgibi', alanAdi: 'anadilimgibi.com' };
+const UYGULAMA = { ad: 'AnadilimGibi', surum: '2.0.0', yil: '2026', yazar: 'Berkay Çelik', instagram: 'berkay.celik52', eposta: 'info@anadilimgibi.com' };
 
 /* ================= Veri ve ilerleme ================= */
 // Excel'den gelen taban liste + kullanıcının sözlükte yaptığı ekleme/düzenleme/silmeler (P.sozluk)
@@ -41,7 +44,7 @@ function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^=
 
 function yeniIlerleme() {
   return { v: 1, updated: Date.now(), seed: Math.floor(Math.random() * 1e9),
-    ayar: { gunluk: 10, ses: '', hiz: 0.95, otoSes: true, tema: 'Sistem', ozelTema: {}, temaRenk: null },
+    ayar: { gunluk: 10, sinir: 50, yds: true, ses: '', hiz: 0.95, otoSes: true, tema: 'Sistem', ozelTema: {}, temaRenk: null },
     w: {}, gun: {}, kagit: [], kagitNo: 0, sozluk: {}, rozet: {}, oyun: {} };
 }
 function tamamla() {
@@ -124,6 +127,33 @@ function vadesiGelenler(t = bugun()) {
   }
   return l;
 }
+/* Günlük sınır ve yük dengesi
+   - Günlük rutinde en fazla P.ayar.sinir soru (varsayılan 50) sorulur; fazlası yarına kalır.
+   - Günün başındaki tekrar yükü (g.yuk) sınırı aşıyorsa o gün yeni kelime verilmez;
+     sınırın yarısının altındaysa ayarlardaki sayı tam verilir; arada kademeli olarak azalır.
+   - Her yeni kelime aynı gün 2–3 soru getirdiği için yeni kelime ancak kalan soru hakkına sığdığı kadar verilir. */
+const SINIR_SECENEK = [25, 50, 100];
+const ETUT_HAZIR = true; // Etüt Köşesi açık: menüde görünür, sınır mesajı Etüt'e yönlendirir
+const sinirMesaji = () => 'Bugünlük bu kadar yeter. Kalan tekrarlar yarına bırakıldı' +
+  (ETUT_HAZIR ? '; daha fazla çalışmak istersen Etüt Köşesi seni bekliyor.' : '.');
+function gunPlani(t = bugun()) {
+  const g = gunKaydi(t);
+  const vade = vadesiGelenler(t);
+  if (g.yuk == null) g.yuk = vade.length; // günün başındaki tekrar yükü
+  const sinir = SINIR_SECENEK.includes(+P.ayar.sinir) ? +P.ayar.sinir : 50;
+  const kalanSoru = Math.max(0, sinir - (g.q || 0));
+  const yari = sinir / 2;
+  const oran = g.yuk >= sinir ? 0 : g.yuk <= yari ? 1 : (sinir - g.yuk) / yari;
+  const taban = Math.floor(P.ayar.gunluk * oran);
+  const yer = Math.floor(Math.max(0, kalanSoru - vade.length) / 3);
+  return {
+    g, vade, sinir, kalanSoru, azaltildi: oran < 1 && P.ayar.gunluk > 0,
+    yeniHak: Math.max(0, Math.min(taban - g.n, yer)),
+    planli: Math.min(vade.length, kalanSoru),
+    doldu: kalanSoru === 0,
+  };
+}
+
 function durum(id) {
   const s = P.w[id]; if (!s) return 'yeni';
   if (s.seref) return 'seref';
@@ -133,7 +163,16 @@ function durum(id) {
   if (min >= USTA) return 'pekisti';
   return 'ogreniliyor';
 }
-const DURUM_AD = { yeni: 'Henüz başlanmadı', ogreniliyor: 'Öğreniliyor', pekisti: 'Pekişti', usta: 'Ustalaştı', seref: 'Şeref tribünü' };
+// Seviye (yaklaşık CEFR) ve konu etiketleri: Sözlük, Yazdır-Çöz ve Etüt'te süzmek için
+const SEVIYELER = ['A2', 'B1', 'B2', 'C1', 'C2'];
+const konuListesi = () => [...new Set(K.map(k => k.tp).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr'));
+function etiketSecimHtml(lv = '', tp = '', { etiketli = true } = {}) {
+  const s1 = `<select name="lv" aria-label="Seviye"><option value="">Tüm seviyeler</option>${SEVIYELER.map(s => `<option value="${s}" ${lv === s ? 'selected' : ''}>Yaklaşık ${s}</option>`).join('')}</select>`;
+  const s2 = `<select name="tp" aria-label="Konu"><option value="">Tüm konular</option>${konuListesi().map(s => `<option value="${esc(s)}" ${tp === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>`;
+  return etiketli ? `<label>Seviye ${s1}</label><label>Konu ${s2}</label>` : s1 + s2;
+}
+const etiketSuz = (l, lv, tp) => l.filter(k => (!lv || k.lv === lv) && (!tp || k.tp === tp));
+const DURUM_AD = { yeni: 'Henüz başlanmadı', ogreniliyor: 'Öğreniliyor', pekisti: 'Pekişti', usta: 'Ustalaştı', seref: 'Şeref Tribünü' };
 
 // Kelimeyi baştan öğrenilecekler havuzuna al (içerik değişince ya da tribünden indirilince)
 function yenidenOgren(id) {
@@ -150,14 +189,15 @@ const Ses = (() => {
   let sesler = [];
   const var_ = 'speechSynthesis' in window;
   function doldur() { if (var_) sesler = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)); }
-  if (var_) { doldur(); speechSynthesis.onvoiceschanged = doldur; }
-  function oku(metin) {
+  // Sesler bazı tarayıcılarda geç yüklenir; Etüt seçim ekranı açıksa dikte/gölgeleme seçenekleri güncellensin
+  if (var_) { doldur(); speechSynthesis.onvoiceschanged = () => { doldur(); if (typeof aktifEkran !== 'undefined' && aktifEkran === 'etut' && !Etut.aktif()) ekranEtut(); }; }
+  function oku(metin, hiz) {
     if (!var_ || !metin) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(metin);
     const v = sesler.find(v => v.name === P.ayar.ses) || sesler.find(v => /en-GB/i.test(v.lang)) || sesler[0];
     if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-GB';
-    u.rate = P.ayar.hiz || 0.95;
+    u.rate = hiz || P.ayar.hiz || 0.95;
     speechSynthesis.speak(u);
   }
   return { oku, liste: () => sesler, var: () => var_ && sesler.length > 0 };
@@ -178,17 +218,19 @@ document.addEventListener('keydown', e => {
   if (klavye && !e.ctrlKey && !e.metaKey && !e.altKey) klavye(e);
 });
 
-const EKRANLAR = ['bugun', 'calis', 'kagit', 'oyun', 'sozluk', 'istatistik', 'basari', 'ayar', 'hakkinda'];
+const EKRANLAR = ['bugun', 'calis', 'etut', 'kagit', 'oyun', 'sozluk', 'istatistik', 'basari', 'ayar', 'hakkinda', 'kilavuz', 'karsilama'];
 function git(ekran, gecmiseYaz = true) {
   // Telefonun geri tuşu uygulamadan çıkmak yerine önceki ekrana dönsün
   if (gecmiseYaz && ekran !== aktifEkran && EKRANLAR.includes(ekran)) history.pushState({ ekran }, '', '#' + ekran);
+  if (aktifEkran === 'etut' && ekran !== 'etut') Etut.ayril();
   aktifEkran = ekran; klavye = null;
+  document.body.classList.toggle('karsilama-modu', ekran === 'karsilama');
   document.querySelectorAll('nav [data-git], .daha-ic [data-git]').forEach(b => b.classList.toggle('aktif', b.dataset.git === ekran));
-  const dahaIci = ['kagit', 'istatistik', 'basari', 'ayar', 'hakkinda'].includes(ekran);
-  $('#dahaBtn')?.classList.toggle('aktif', dahaIci);
+  const dahaIci = ['kagit', 'istatistik', 'basari', 'ayar', 'hakkinda', 'kilavuz'].includes(ekran);
+  document.querySelectorAll('.daha-ac').forEach(b => b.classList.toggle('aktif', dahaIci));
   dahaKapat();
   ({ bugun: ekranBugun, calis: ekranCalis, kagit: ekranKagit, oyun: ekranOyun, sozluk: ekranSozluk, istatistik: ekranIstatistik,
-    basari: ekranBasari, ayar: ekranAyar, hakkinda: ekranHakkinda }[ekran] || ekranBugun)();
+    basari: ekranBasari, ayar: ekranAyar, hakkinda: ekranHakkinda, kilavuz: ekranKilavuz, karsilama: ekranKarsilama, etut: ekranEtut }[ekran] || ekranBugun)();
   window.scrollTo(0, 0);
 }
 document.addEventListener('click', e => {
@@ -202,9 +244,9 @@ window.addEventListener('popstate', e => {
   git(EKRANLAR.includes(h) ? h : 'bugun', false);
 });
 // Telefonda alt çubuktaki "Daha" menüsü
-function dahaKapat() { const m = $('#dahaMenu'); if (m) m.hidden = true; $('#dahaBtn')?.setAttribute('aria-expanded', 'false'); }
+function dahaKapat() { const m = $('#dahaMenu'); if (m) m.hidden = true; document.querySelectorAll('.daha-ac').forEach(b => b.setAttribute('aria-expanded', 'false')); }
 document.addEventListener('click', e => {
-  if (e.target.closest('#dahaBtn')) { const m = $('#dahaMenu'); m.hidden = !m.hidden; $('#dahaBtn').setAttribute('aria-expanded', String(!m.hidden)); return; }
+  if (e.target.closest('.daha-ac')) { const m = $('#dahaMenu'); m.hidden = !m.hidden; document.querySelectorAll('.daha-ac').forEach(b => b.setAttribute('aria-expanded', String(!m.hidden))); return; }
   if (!e.target.closest('#dahaMenu .daha-ic')) dahaKapat();
 });
 
@@ -214,10 +256,13 @@ function kelimeKarti(k, { ornekler = true } = {}) {
   const ex = ornekler ? k.ex.map(s => `<li>${vurgula(s, k.w)} ${sesBtn(s, '▶')}</li>`).join('') : '';
   return `<div class="kart-kelime">
     <div class="kk-ust"><span class="kk-w">${esc(k.w)}</span> ${sesBtn(k.w)}
-      ${k.pr ? `<span class="kk-pr">/${esc(k.pr)}/</span>` : ''} ${k.p ? `<span class="etiket">${esc(k.p)}</span>` : ''}</div>
+      ${k.pr ? `<span class="kk-pr">/${esc(k.pr)}/</span>` : ''} ${k.p ? `<span class="etiket">${esc(k.p)}</span>` : ''}
+      ${k.lv ? `<span class="etiket seviye-et" title="Yaklaşık seviye">≈ ${esc(k.lv)}</span>` : ''} ${k.tp ? `<span class="etiket">${esc(k.tp)}</span>` : ''}</div>
     <div class="kk-tr">${esc(k.tr)}</div>
     ${k.d ? `<div class="kk-d">${esc(k.d)}</div>` : ''}
     ${ex ? `<ul class="kk-ex">${ex}</ul>` : ''}
+    ${k.col ? `<div class="kk-col"><b>Eşdizimler:</b> ${k.col.split(' · ').map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+    ${k.n ? `<div class="kk-not"><b>Not:</b> ${esc(k.n)}</div>` : ''}
   </div>`;
 }
 function vurgula(cumle, w) {
@@ -230,10 +275,11 @@ function vurgula(cumle, w) {
 
 /* ================= Ana sayfa ================= */
 function ekranBugun() {
-  const t = bugun(), g = gunKaydi(t);
-  const vade = vadesiGelenler(t);
+  const t = bugun();
+  const plan = gunPlani(t), { g, vade } = plan;
   const vadeKelime = new Set(vade.map(v => v.id)).size;
-  const yeniHak = Math.max(0, P.ayar.gunluk - g.n);
+  const yeniHak = plan.yeniHak;
+  const yarina = vade.length - plan.planli;
   const kalanYeni = K.filter(k => !P.w[k.id]).length;
   const tekrarTanit = yenidenTanitilacaklar().length;
   const say = { yeni: 0, ogreniliyor: 0, pekisti: 0, usta: 0, seref: 0 };
@@ -258,12 +304,14 @@ function ekranBugun() {
     </div>
     <div class="ozet">
       <div class="kutu"><b>${yeniHak}</b><span>yeni kelime${tekrarTanit ? `<br><small>+${tekrarTanit} güncellenen</small>` : ''}</span></div>
-      <div class="kutu"><b>${vade.length}</b><span>tekrar alıştırması<br><small>${vadeKelime} kelime</small></span></div>
-      <div class="kutu"><b>${g.r ? Math.round(100 * g.ok / g.r) + '%' : '–'}</b><span>bugünkü başarı<br><small>${g.r} cevap</small></span></div>
+      <div class="kutu"><b>${plan.planli}</b><span>tekrar alıştırması<br><small>${vadeKelime} kelime${yarina > 0 ? ` · ${yarina} yarına` : ''}</small></span></div>
+      <div class="kutu"><b>${g.r ? Math.round(100 * g.ok / g.r) + '%' : '–'}</b><span>bugünkü başarı<br><small>${g.q || 0}/${plan.sinir} soru</small></span></div>
     </div>
+    ${plan.doldu ? `<p class="bilgi">${sinirMesaji()} <button class="link" data-git="etut">Etüt Köşesi'ne git →</button></p>`
+      : plan.azaltildi ? `<p class="soluk kucuk">Bekleyen tekrarların çok olduğu için bugün yeni kelime sayısı azaltıldı. Tekrarlar azaldıkça yeni kelimeler kendiliğinden geri gelir.</p>` : ''}
     <div class="butonlar">
-      ${(() => { const bos = !yeniHak && !vade.length && !tekrarTanit; return `<button class="ana-btn" data-git="calis" ${bos ? 'disabled' : ''}>${bos ? 'Bugünlük bitti ✓' : 'Çalışmaya başla'}</button>
-      ${bos && kalanYeni ? '<button class="btn" id="ekYeni">+5 yeni kelime daha</button>' : ''}`; })()}
+      ${(() => { const bos = plan.doldu || (!yeniHak && !plan.planli && !tekrarTanit); return `<button class="ana-btn" data-git="calis" ${bos ? 'disabled' : ''}>${bos ? 'Bugünlük bitti ✓' : 'Çalışmaya başla'}</button>
+      ${bos && !plan.doldu && kalanYeni && plan.kalanSoru >= 15 ? '<button class="btn" id="ekYeni">+5 yeni kelime daha</button>' : ''}`; })()}
       <button class="btn" data-git="kagit">Yazdır-Çöz bulmacası hazırla${bekleyenKagit ? ` <span class="rozet">${bekleyenKagit}</span>` : ''}</button>
       <button class="btn" id="hizliEkle">+ Kelime ekle</button>
     </div>
@@ -279,7 +327,7 @@ function ekranBugun() {
       <ul class="lejant">
         ${['ogreniliyor', 'pekisti', 'usta', 'seref', 'yeni'].map(d => `<li><i class="d-${d}"></i>${DURUM_AD[d]} <b>${say[d]}</b></li>`).join('')}
       </ul>
-      <p class="soluk kucuk">Toplam <b>${K.length.toLocaleString('tr-TR')}</b> kelime. Üç yönde de 14 günlük aralığı geçen kelime “pekişti”, 180 günlüğü geçen “ustalaştı” sayılır; 360 günlük tekrarı da bilirsen kelime <b>şeref tribününe</b> çıkar ve bir daha sorulmaz.</p>
+      <p class="soluk kucuk">Toplam <b>${K.length.toLocaleString('tr-TR')}</b> kelime. Üç yönde de 14 günlük aralığı geçen kelime “pekişti”, 180 günlüğü geçen “ustalaştı” sayılır. Üç alıştırma türünde de 360 günlük tekrarını doğru cevapladığın kelime <b>Şeref Tribünü</b>'ne çıkar ve artık sorulmaz.</p>
     </div>
     <div class="panel">
       <h2>Önümüzdeki 7 gün</h2>
@@ -300,34 +348,50 @@ let oturum = null;
 
 function yenidenTanitilacaklar() { return Object.keys(P.w).filter(id => P.w[id].tanit && KID.has(id)); }
 function oturumKur(ekYeni = 0) {
-  const hak = Math.max(0, P.ayar.gunluk - gunKaydi().n) + ekYeni;
-  return { yeniler: [...yenidenTanitilacaklar(), ...siradakiYeniler(hak).map(k => k.id)], tanitIdx: 0, kuyruk: null, adim: 0, dogru: 0, yanlis: 0, gorulen: new Set(), bitti: false };
+  const hak = gunPlani().yeniHak + ekYeni;
+  return { yeniler: [...yenidenTanitilacaklar(), ...siradakiYeniler(hak).map(k => k.id)], tanitIdx: 0, kuyruk: null, adim: 0, dogru: 0, yanlis: 0, gorulen: new Set(), bitti: false, kayit: [] };
 }
 function kuyrukKur() {
-  const v = vadesiGelenler();
+  const { kalanSoru } = gunPlani();
+  let v = vadesiGelenler();
+  if (v.length > kalanSoru) {
+    // Sınırı aşan gün: en çok geciken, sonra en zayıf (en düşük kutudaki) alıştırmalardan başla
+    const s = x => P.w[x.id].m[x.m];
+    v = v.slice().sort((a, b) => s(a).d.localeCompare(s(b).d) || s(a).b - s(b).b).slice(0, kalanSoru);
+  }
   const tur = m => karistir(v.filter(x => x.m === m));
   return [...tur('r'), ...tur('c'), ...tur('p')];
 }
 
 function ekranCalis() {
-  if (!oturum || oturum.bitti) oturum = oturumKur();
+  if (!oturum || oturum.bitti || oturum.etut) oturum = oturumKur();
   devam();
 }
 
 function devam() {
   klavye = null;
+  if (oturum?.etut) return Etut.sonraki();
   const o = oturum;
   if (o.tanitIdx < o.yeniler.length) return tanitimGoster();
   if (!o.kuyruk) o.kuyruk = kuyrukKur();
   // tanıtımdan sonra gelecek kuyruk: yeni kelimeler de vadede
-  if (!o.kuyruk.length) return oturumSonu();
+  const kalanSoru = gunPlani().kalanSoru;
+  if (!o.kuyruk.length && kalanSoru && P.ayar.yds !== false && !o.ydsEklendi && o.adim > 0) {
+    // Tekrarlar bitince birkaç YDS / YÖKDİL tarzı soru (tanışılan kelimelerden)
+    o.ydsEklendi = true;
+    const havuz = Object.keys(P.w).filter(id => KID.has(id));
+    const son = [];
+    for (let i = 0; i < Math.min(5, kalanSoru); i++) { const s = Yds.uret(havuz, son); son.push(s.id); o.kuyruk.push({ id: s.id, m: 'yds', soru: s, baslik: s.baslik }); }
+  }
+  if (!o.kuyruk.length || !kalanSoru) return oturumSonu();
   const it = o.kuyruk[0];
+  if (it.m === 'yds') return ydsSoruGoster(it);
   const s = P.w[it.id]?.m[it.m];
   if (!s) { o.kuyruk.shift(); return devam(); }
   // eşleştirme grubu: düşük kutudaki bağlam/üretme alıştırmaları
   if ((it.m === 'c' || it.m === 'p') && s.b <= 1) {
     const grup = [], cevaplar = new Set();
-    for (let i = 0; i < o.kuyruk.length && grup.length < 6; i++) {
+    for (let i = 0; i < o.kuyruk.length && grup.length < Math.min(6, kalanSoru); i++) {
       const x = o.kuyruk[i], sx = P.w[x.id]?.m[x.m];
       const w = KID.get(x.id).w.toLowerCase();
       if ((x.m === 'c' || x.m === 'p') && sx && sx.b <= 1 && !cevaplar.has(w)) { grup.push(x); cevaplar.add(w); }
@@ -338,6 +402,7 @@ function devam() {
 }
 
 function ilerlemeCubugu() {
+  if (oturum?.etut) return Etut.ustHtml();
   const o = oturum;
   const toplam = o.yeniler.length + o.adim + (o.kuyruk ? o.kuyruk.length : vadesiGelenler().length + o.yeniler.length * 3);
   const yapilan = Math.min(o.tanitIdx, o.yeniler.length) + o.adim;
@@ -345,7 +410,7 @@ function ilerlemeCubugu() {
     <div class="oturum-ust"><span class="soluk">${o.kuyruk ? `${o.kuyruk.length} alıştırma kaldı` : `Yeni kelime ${o.tanitIdx + 1}/${o.yeniler.length}`}</span>
     <button class="btn kucuk" id="bitir">Şimdilik bitir</button></div>`;
 }
-function ustBagla() { $('#bitir')?.addEventListener('click', () => { oturumSonu(true); }); }
+function ustBagla() { if (oturum?.etut) return Etut.ustBagla(); $('#bitir')?.addEventListener('click', () => { oturumSonu(true); }); }
 
 function tanitimGoster() {
   const o = oturum, k = KID.get(o.yeniler[o.tanitIdx]);
@@ -402,13 +467,17 @@ function sonucHtml(k, dogru, ek = '') {
     <b>${dogru ? 'Doğru!' : 'Doğrusu:'}</b> ${esc(k.w)} ${sesBtn(k.w)} <span class="soluk">— ${esc(k.tr)}</span> ${ek}
     <button class="ana-btn" id="sonraki">Devam <kbd>Enter</kbd></button></div>`;
 }
-function cevapla(it, dogru) {
+function cevapla(it, dogru, verilen = '', dogruCevap = '') {
+  if (oturum?.etut) return Etut.cevap(it, dogru, verilen, dogruCevap);
   const o = oturum;
+  o.kayit?.push({ id: it.id, m: it.m, dogru, verilen, dogruCevap, baslik: it.baslik });
+  const g = gunKaydi(); g.q = (g.q || 0) + 1; // günlük rutin soru sayacı (sınır için)
   puanla(it.id, it.m, dogru);
   o.kuyruk = o.kuyruk.filter(x => !(x.id === it.id && x.m === it.m));
   o.adim++;
   if (dogru) o.dogru++;
-  else { o.yanlis++; o.kuyruk.splice(Math.min(o.kuyruk.length, 3 + Math.floor(Math.random() * 3)), 0, { id: it.id, m: it.m }); }
+  else if (it.m !== 'yds') { o.yanlis++; o.kuyruk.splice(Math.min(o.kuyruk.length, 3 + Math.floor(Math.random() * 3)), 0, { id: it.id, m: it.m }); }
+  else o.yanlis++;
 }
 function sonrakiBagla() {
   const btn = $('#sonraki'); btn?.focus();
@@ -456,7 +525,7 @@ function coktanSecmeli(it, k, tur) {
       if (secenekler[j].metin === dogruMetin) b.classList.add('dogru');
       else if (j === i) b.classList.add('yanlis');
     });
-    cevapla(it, dogru);
+    cevapla(it, dogru, secenekler[i].metin, dogruMetin);
     $('#geri').innerHTML = sonucHtml(k, dogru);
     if (it.m !== 'r' && P.ayar.otoSes) Ses.oku(k.w);
     sonrakiBagla();
@@ -490,7 +559,7 @@ function yazma(it, k, ipucuVar) {
     const s = girdi == null ? 'yanlis' : Metin.kontrol(girdi, k.w, ekler);
     const dogru = s !== 'yanlis';
     inp.disabled = true; inp.classList.add(dogru ? 'dogru' : 'yanlis');
-    cevapla(it, dogru);
+    cevapla(it, dogru, girdi == null ? '(boş bıraktın)' : girdi.trim(), k.w);
     const not = s === 'yakin' ? `<span class="not">Küçük bir yazım hatası vardı, doğru saydım.</span>` : '';
     $('#geri').innerHTML = sonucHtml(k, dogru, not);
     if (P.ayar.otoSes) Ses.oku(k.w);
@@ -523,7 +592,7 @@ function harfDizme(it, k) {
     document.querySelectorAll('#harfler .harf').forEach(b => b.disabled = bitti || secilen.includes(+b.dataset.j));
   };
   const bitir = (dogru) => {
-    bitti = true; ciz(); cevapla(it, dogru);
+    bitti = true; ciz(); cevapla(it, dogru, secilen.map(x => harf[x].h).join('') || '(boş bıraktın)', k.w);
     $('#dizi').classList.add(dogru ? 'dogru' : 'yanlis');
     $('#geri').innerHTML = sonucHtml(k, dogru);
     if (P.ayar.otoSes) Ses.oku(k.w);
@@ -593,7 +662,7 @@ function eslestirmeGoster(grup) {
   $('#kontrol').onclick = () => {
     kontrolEdildi = true;
     let d = 0;
-    satirlar.forEach(s => { const ok = s.secim === s.k.w; if (ok) d++; cevapla(s.it, ok); });
+    satirlar.forEach(s => { const ok = s.secim === s.k.w; if (ok) d++; cevapla(s.it, ok, s.secim || '', s.k.w); });
     ciz();
     $('#geri').innerHTML = `<div class="sonuc ${d === satirlar.length ? 'iyi' : 'kotu'}"><b>${d}/${satirlar.length} doğru.</b>
       ${d < satirlar.length ? '<span class="soluk">Yanlışlar birazdan tekrar gelecek.</span>' : ''}
@@ -611,21 +680,25 @@ function eslestirmeGoster(grup) {
 function oturumSonu(erken = false) {
   const o = oturum; o.bitti = true; klavye = null;
   const toplam = o.dogru + o.yanlis;
-  const kalan = vadesiGelenler().length;
+  const plan = gunPlani(), kalan = plan.planli;
   ana().innerHTML = `<section class="sahne">
     <h1>${erken ? 'Ara verdin' : 'Tebrikler! 🎉'}</h1>
-    <p>${o.tanitIdx ? `${o.tanitIdx} yeni kelimeyle tanıştın. ` : ''}${toplam ? `${toplam} alıştırmanın ${o.dogru} tanesini ilk denemede doğru yaptın.` : ''}</p>
-    ${kalan ? `<p class="soluk">Bugün için ${kalan} alıştırma daha bekliyor. İstediğin zaman kaldığın yerden devam edebilirsin.</p>` : '<p class="soluk">Bugünkü tekrarların bitti. Yarın görüşürüz!</p>'}
+    <p>${o.tanitIdx ? `${o.tanitIdx} yeni kelimeyle tanıştın. ` : ''}${toplam ? `${toplam} alıştırmanın ${o.dogru} tanesini doğru cevapladın.` : ''}</p>
+    ${toplam ? Karne.html(o.kayit, { baslik: 'Oturum karnesi' }) : ''}
+    ${plan.doldu ? `<p class="soluk">${sinirMesaji()}</p>`
+      : kalan ? `<p class="soluk">Bugün için ${kalan} alıştırma daha bekliyor. İstediğin zaman kaldığın yerden devam edebilirsin.</p>` : '<p class="soluk">Bugünkü tekrarların bitti. Yarın görüşürüz!</p>'}
     <div class="butonlar orta">
       <button class="ana-btn" data-git="bugun">Ana sayfa</button>
       ${kalan ? '<button class="btn" id="devamEt">Devam et</button>' : ''}
       <button class="btn" data-git="kagit">Yazdır-Çöz bulmacası hazırla</button>
       <button class="btn" data-git="oyun">Oyun oyna</button>
+      ${plan.doldu ? '<button class="btn" data-git="etut">Etüt Köşesi</button>' : ''}
     </div></section>`;
+  Karne.bagla();
   $('#devamEt')?.addEventListener('click', () => { oturum = oturumKur(); devam(); });
 }
 
-/* ================= Kağıt bulmacalar ================= */
+/* ================= Kâğıt bulmacalar (Yazdır-Çöz) ================= */
 const KAGIT_TUR = {
   capraz: 'Çengel bulmaca',
   soz: 'Sözcük avı (ipuçlu)',
@@ -634,9 +707,10 @@ const KAGIT_TUR = {
 };
 let sonKagit = null;
 
-function kaynakKelimeler(kaynak, n) {
+function kaynakKelimeler(kaynak, n, lv = '', tp = '') {
   const t = bugun();
-  const tanisilan = K.filter(k => P.w[k.id]);
+  const tanisilan = etiketSuz(K.filter(k => P.w[k.id]), lv, tp);
+  if (kaynak === 'sozluk') return karistir(etiketSuz(K, lv, tp)).slice(0, n);
   let l;
   if (kaynak === 'vade') {
     const yakin = gunEkle(t, 2);
@@ -658,9 +732,9 @@ function ekranKagit() {
   const a = P.ayar.kagit || { tur: 'capraz', kaynak: 'vade', adet: 12, ipucu: 'karisik', zorluk: 'orta' };
   ana().innerHTML = `
   <section class="panel">
-    <h1>Kalemle Çöz</h1>
+    <h1>Yazdır-Çöz</h1>
     <p class="soluk">Bulmacayı hazırla, “Yazdır / PDF” ile çıktı al. Çözdükten sonra sonuçlarını buraya girersen tekrar takvimin de güncellenir.</p>
-    ${tanisilan < 6 ? `<p class="uyari">Bulmacalar tanıştığın kelimelerden üretilir. Şu an ${tanisilan} kelimen var; en az 6 kelime gerekiyor. Önce bir çalışma oturumu yap.</p>` : ''}
+    ${tanisilan < 6 ? `<p class="uyari">Henüz ${tanisilan} kelimeyle tanıştın. Tanıştığın kelimelerden bulmaca için en az 6 kelime gerekiyor; şimdilik “Bütün sözlükten” seçeneğini kullanabilirsin.</p>` : ''}
     <form id="kagitForm" class="form-izgara">
       <label>Bulmaca türü
         <select name="tur">${Object.entries(KAGIT_TUR).map(([k, v]) => `<option value="${k}" ${a.tur === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
@@ -670,7 +744,9 @@ function ekranKagit() {
           <option value="bugun" ${a.kaynak === 'bugun' ? 'selected' : ''}>Bugün öğrendiklerim</option>
           <option value="zor" ${a.kaynak === 'zor' ? 'selected' : ''}>En çok zorlandıklarım</option>
           <option value="hepsi" ${a.kaynak === 'hepsi' ? 'selected' : ''}>Tanıştığım tüm kelimeler (rastgele)</option>
+          <option value="sozluk" ${a.kaynak === 'sozluk' ? 'selected' : ''}>Bütün sözlükten (sınıf ve ödev için)</option>
         </select></label>
+      ${etiketSecimHtml(a.lv, a.tp)}
       <label>Kelime sayısı <input type="number" name="adet" min="6" max="25" value="${a.adet}"></label>
       <label>İpucu türü
         <select name="ipucu">
@@ -685,7 +761,7 @@ function ekranKagit() {
           <option value="orta" ${a.zorluk === 'orta' ? 'selected' : ''}>Orta (+ çapraz)</option>
           <option value="zor" ${a.zorluk === 'zor' ? 'selected' : ''}>Zor (+ ters yönler)</option>
         </select></label>
-      <div class="butonlar"><button class="ana-btn" ${tanisilan < 6 ? 'disabled' : ''}>Bulmacayı oluştur</button></div>
+      <div class="butonlar"><button class="ana-btn">Bulmacayı oluştur</button></div>
     </form>
   </section>
   ${bekleyen.length ? `<section class="panel"><h2>Sonucu girilmemiş bulmacalar</h2>
@@ -698,8 +774,8 @@ function ekranKagit() {
     const f = Object.fromEntries(new FormData(e.target));
     f.adet = Math.max(6, Math.min(25, +f.adet || 12));
     P.ayar.kagit = f; kaydet();
-    const kelimeler = kaynakKelimeler(f.kaynak, f.adet + (f.tur === 'bosluk' ? 0 : 6));
-    if (kelimeler.length < 4) { $('#onizleme').innerHTML = `<p class="uyari">Bu seçimle yeterli kelime bulunamadı. “Tanıştığım tüm kelimeler” seçeneğini dene.</p>`; return; }
+    const kelimeler = kaynakKelimeler(f.kaynak, f.adet + (f.tur === 'bosluk' ? 0 : 6), f.lv, f.tp);
+    if (kelimeler.length < 4) { $('#onizleme').innerHTML = `<p class="uyari">Bu seçimle yeterli kelime bulunamadı. Seviye ya da konu seçimini genişletmeyi ya da “Bütün sözlükten” seçeneğini dene.</p>`; return; }
     kagitUret(f, kelimeler);
   };
   document.querySelectorAll('[data-not]').forEach(b => b.onclick = () => notGir(b.dataset.not));
@@ -846,10 +922,11 @@ function ekranOyun(tur) {
   ana().innerHTML = `<section class="panel">
     <h1>Oyunlar</h1>
     <p class="soluk">Serbest oyunlar tekrar takvimini etkilemez; istediğin kadar oyna.${havuzAz ? ' Henüz az kelimeyle tanıştığın için tüm listeden soruluyor.' : ' Tanıştığın kelimelerden soruluyor.'}</p>
-    <div class="butonlar">${[['adam', 'Adam asmaca'], ['harf', 'Karışık harfler'], ['esles', 'Kelime eşleştirme']].map(([k, ad]) =>
+    <div class="butonlar">${[['adam', 'Çiçek büyüt'], ['harf', 'Karışık harfler'], ['esles', 'Kelime eşleştirme'], ['parcacik', 'Parçacık Tamamlama']].map(([k, ad]) =>
       `<button class="${(tur || 'adam') === k ? 'ana-btn' : 'btn'}" data-oyun="${k}">${ad}</button>`).join('')}</div></section>
     <section class="sahne ${tur === 'esles' ? 'genis' : ''}" id="oyunAlani"></section>`;
   document.querySelectorAll('[data-oyun]').forEach(b => b.onclick = () => ekranOyun(b.dataset.oyun));
+  if (tur === 'parcacik') return OyunParcacik.oyna($('#oyunAlani'));
   ({ harf: karisikOyun, esles: eslesOyun }[tur] || adamAsmaca)();
 }
 
@@ -918,26 +995,47 @@ function eslesOyun() {
   ciz();
 }
 
+// Çiçek büyüt: harf tahmin oyunu. Doğru harfler fideyi büyütür, kelime tamamlanınca çiçek açar.
+// Yanlış tahmin bir su damlası harcatır; damlalar biterse çiçek bu sefer açmaz. (İç anahtar "adam" geriye dönük uyumluluk için korunur.)
+function cicekSvg(oran, acti, kurudu) {
+  const boy = Math.round(8 + 78 * oran);           // gövde uzunluğu
+  const ust = 112 - boy;                            // gövdenin tepe noktası
+  const yaprak = (y, sag) => `<path d="M60 ${y} q ${sag ? 22 : -22} -6 ${sag ? 26 : -26} -20 q ${sag ? -16 : 16} 2 ${sag ? -26 : 26} 20z" class="ck-yaprak"/>`;
+  const parcalar = [];
+  parcalar.push(`<path d="M60 112 L60 ${ust}" class="ck-govde"/>`);
+  if (oran > 0.25) parcalar.push(yaprak(Math.min(104, ust + boy * 0.7), true));
+  if (oran > 0.5) parcalar.push(yaprak(Math.min(100, ust + boy * 0.45), false));
+  if (acti) {
+    const tac = [0, 72, 144, 216, 288].map(a => `<ellipse cx="60" cy="${ust - 12}" rx="9" ry="15" transform="rotate(${a} 60 ${ust})" class="ck-tac"/>`).join('');
+    parcalar.push(`<g class="ck-cicek">${tac}<circle cx="60" cy="${ust}" r="7" class="ck-gobek"/></g>`);
+  } else if (oran > 0.8) parcalar.push(`<ellipse cx="60" cy="${ust - 6}" rx="7" ry="10" class="ck-tomurcuk"/>`);
+  else parcalar.push(`<circle cx="60" cy="${ust}" r="3.5" class="ck-filiz"/>`);
+  return `<svg viewBox="0 0 120 150" class="cicek ${kurudu ? 'kurudu' : ''}" aria-hidden="true">
+    ${parcalar.join('')}
+    <path d="M30 112 h60 l-7 32 h-46z" class="ck-saksi"/><rect x="26" y="106" width="68" height="10" rx="3" class="ck-saksi-agiz"/>
+  </svg>`;
+}
 function adamAsmaca() {
   const k = oyunHavuzu()[Math.floor(Math.random() * oyunHavuzu().length)];
   const hedef = k.w.replace(/\(.*?\)/g, '').trim().toUpperCase();
   const tahmin = new Set(); let hata = 0; const MAX = 7; let bitti = false;
   const alan = $('#oyunAlani');
+  const harfSay = new Set([...hedef].filter(ch => /[A-Z]/.test(ch))).size;
   const ciz = () => {
     const kazandi = [...hedef].every(ch => !/[A-Z]/.test(ch) || tahmin.has(ch));
     bitti = kazandi || hata >= MAX;
-    const parcalar = ['<line x1="10" y1="140" x2="110" y2="140"/>', '<line x1="30" y1="140" x2="30" y2="10"/><line x1="30" y1="10" x2="85" y2="10"/><line x1="85" y1="10" x2="85" y2="28"/>',
-      '<circle cx="85" cy="40" r="12"/>', '<line x1="85" y1="52" x2="85" y2="92"/>', '<line x1="85" y1="62" x2="68" y2="78"/>', '<line x1="85" y1="62" x2="102" y2="78"/>',
-      '<line x1="85" y1="92" x2="70" y2="118"/><line x1="85" y1="92" x2="100" y2="118"/>'];
+    const bulunan = [...new Set([...hedef].filter(ch => /[A-Z]/.test(ch) && tahmin.has(ch)))].length;
+    const oran = kazandi ? 1 : bulunan / Math.max(1, harfSay);
     alan.innerHTML = `<div class="adam">
-      <svg viewBox="0 0 120 150" class="darag" aria-label="${hata} hata">${parcalar.slice(0, hata).join('')}</svg>
+      <div class="cicek-kutu">${cicekSvg(oran, kazandi, !kazandi && bitti)}
+        <div class="damlalar" aria-label="${MAX - hata} su damlası kaldı">${Array.from({ length: MAX }, (_, i) => `<span class="${i < MAX - hata ? '' : 'bos'}">💧</span>`).join('')}</div></div>
       <div><p class="ust-baslik">İpucu</p><div class="soru-ipucu">${esc(k.tr)}</div>${k.d ? `<p class="soluk">${esc(Metin.gizle(k.d, k.w))}</p>` : ''}
       <p class="adam-kelime">${[...hedef].map(ch => /[A-Z]/.test(ch) ? `<span>${tahmin.has(ch) || bitti ? ch : '&nbsp;'}</span>` : `<b>${ch === ' ' ? '&nbsp;&nbsp;' : esc(ch)}</b>`).join('')}</p>
-      <p class="soluk">Kalan hak: ${MAX - hata}</p></div></div>
+      <p class="soluk">Her doğru harf fideni büyütür; yanlış tahmin bir su damlası harcar. Kalan su: ${MAX - hata}</p></div></div>
       <div class="klavye">${['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map(sira => `<div class="klavye-sira">${[...sira].map(h =>
         `<button class="harf ${tahmin.has(h) ? (hedef.includes(h) ? 'var' : 'yok') : ''}" data-h="${h}" ${tahmin.has(h) || bitti ? 'disabled' : ''}>${h}</button>`).join('')}</div>`).join('')}</div>
-      ${bitti ? `<div class="sonuc ${kazandi ? 'iyi' : 'kotu'}"><b>${kazandi ? 'Bildin! 🎉' : 'Olmadı.'}</b> ${esc(k.w)} ${sesBtn(k.w)} <span class="soluk">— ${esc(k.tr)}</span>
-        <button class="ana-btn" id="yeniOyun">Yeni kelime <kbd>Enter</kbd></button></div>` : ''}`;
+      ${bitti ? `<div class="sonuc ${kazandi ? 'iyi' : 'kotu'}"><b>${kazandi ? 'Çiçeğin açtı! 🌸' : 'Su bitti; bu çiçek bir dahaki sefere.'}</b> ${esc(k.w)} ${sesBtn(k.w)} <span class="soluk">— ${esc(k.tr)}</span>
+        <button class="ana-btn" id="yeniOyun">Yeni tohum <kbd>Enter</kbd></button></div>` : ''}`;
     alan.querySelectorAll('.klavye .harf').forEach(b => b.onclick = () => tahminEt(b.dataset.h));
     $('#yeniOyun')?.addEventListener('click', adamAsmaca);
     if (bitti) Ses.oku(k.w);
@@ -989,10 +1087,14 @@ function ekranAyar() {
     <h1>Ayarlar</h1>
     <form id="ayarForm" class="form-izgara">
       <label>Günlük yeni kelime sayısı <input type="number" name="gunluk" min="0" max="50" value="${P.ayar.gunluk}"></label>
+      <label>Günlük soru sınırı
+        <select name="sinir">${SINIR_SECENEK.map(n => `<option value="${n}" ${+P.ayar.sinir === n ? 'selected' : ''}>${n} soru${n === 50 ? ' (önerilen)' : ''}</option>`).join('')}</select>
+        <small class="soluk">Günlük rutinde sorulacak en fazla soru. Fazlası yarına kalır, böylece tekrarlar seni bunaltmaz.</small></label>
       <label>Ses
-        <select name="ses"><option value="">Otomatik (İngiliz İngilizcesi tercih)</option>
+        <select name="ses"><option value="">Otomatik (İngiliz İngilizcesi öncelikli)</option>
         ${sesler.map(v => `<option value="${esc(v.name)}" ${v.name === P.ayar.ses ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select></label>
       <label>Konuşma hızı <input type="range" name="hiz" min="0.6" max="1.2" step="0.05" value="${P.ayar.hiz}"></label>
+      <label class="yan"><input type="checkbox" name="yds" ${P.ayar.yds !== false ? 'checked' : ''}> Günlük rutinin sonunda 5 YDS / YÖKDİL tarzı soru sor</label>
       <label class="yan"><input type="checkbox" name="otoSes" ${P.ayar.otoSes ? 'checked' : ''}> Kelimeleri otomatik seslendir</label>
       <div class="butonlar"><button class="ana-btn">Kaydet</button><button type="button" class="btn" data-oku="This is how I sound.">Sesi dene</button></div>
     </form>
@@ -1000,7 +1102,7 @@ function ekranAyar() {
   </section>
   <section class="panel">
     <h2>Görünüm</h2>
-    <p class="soluk">Bir tema seç; anında uygulanır. “Sistem”, Windows'un açık/koyu ayarını izler. Tema seçimin ilerleme dosyasıyla diğer bilgisayarlarına da taşınır.</p>
+    <p class="soluk">Bir tema seç; anında uygulanır. “Sistem”, cihazının açık/koyu ayarını izler. Tema seçimin, ilerlemenle birlikte diğer cihazlarına da taşınır.</p>
     <div class="tema-liste" id="temaListe">
       ${[Tema.SISTEM, ...Object.keys(Tema.HAZIR), Tema.OZEL].map(ad => `<button class="tema-kart ${P.ayar.tema === ad ? 'secili' : ''}" data-tema="${esc(ad)}">
         ${Tema.ornek(ad, P.ayar.ozelTema)}<span>${esc(ad)}</span></button>`).join('')}
@@ -1012,6 +1114,7 @@ function ekranAyar() {
         ${Object.keys(Tema.HAZIR).map(ad => `<button class="btn kucuk" data-temel="${esc(ad)}">${esc(ad)}</button>`).join('')}</div>
     </div>
   </section>
+  ${Kurulum.yuklu() ? '' : `<section class="panel">${Kurulum.html('ayar')}</section>`}
   <section class="panel">
     <h2>Telefon ve bilgisayarlar arasında ilerleme</h2>
     ${Bulut.ayarHtml()}
@@ -1031,7 +1134,8 @@ function ekranAyar() {
     e.preventDefault();
     const f = new FormData(e.target);
     P.ayar.gunluk = Math.max(0, Math.min(50, +f.get('gunluk') || 0));
-    P.ayar.ses = f.get('ses'); P.ayar.hiz = +f.get('hiz'); P.ayar.otoSes = !!f.get('otoSes');
+    P.ayar.sinir = SINIR_SECENEK.includes(+f.get('sinir')) ? +f.get('sinir') : 50;
+    P.ayar.ses = f.get('ses'); P.ayar.hiz = +f.get('hiz'); P.ayar.otoSes = !!f.get('otoSes'); P.ayar.yds = !!f.get('yds');
     kaydet(); bildir('Ayarlar kaydedildi');
   };
   // Tema seçimi
@@ -1055,7 +1159,7 @@ function ekranAyar() {
     temaUygula(); ozelOnizle(); kaydet();
   });
 
-  $('#yedekAl').onclick = () => indir(`justlikemynative-ilerleme-${bugun()}.json`, JSON.stringify(P));
+  $('#yedekAl').onclick = () => indir(`anadilimgibi-ilerleme-${bugun()}.json`, JSON.stringify(P));
   $('#yedekYukle').onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
     try {
@@ -1074,6 +1178,7 @@ function ekranAyar() {
   };
   Senkron.ayarBagla();
   Bulut.ayarBagla();
+  Kurulum.bagla();
 }
 function indir(ad, metin) {
   const a = document.createElement('a');
@@ -1156,7 +1261,7 @@ const Senkron = (() => {
   async function dosyaSec(yeni) {
     try {
       const h = yeni
-        ? await window.showSaveFilePicker({ suggestedName: 'justlikemynative-ilerleme.json', types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }] })
+        ? await window.showSaveFilePicker({ suggestedName: 'anadilimgibi-ilerleme.json', types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }] })
         : (await window.showOpenFilePicker({ types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }] }))[0];
       tutamak = h; await hSet(h);
       izin = (await h.requestPermission({ mode: 'readwrite' })) === 'granted';
@@ -1199,70 +1304,23 @@ const Senkron = (() => {
   return { destek, baslat, planla, bantHtml, bantBagla, ayarHtml, ayarBagla };
 })();
 
-/* ================= Hakkında ================= */
-function ekranHakkinda() {
-  const U = UYGULAMA;
-  const tanisilan = Object.keys(P.w).length;
-  const toplamCevap = Object.values(P.gun).reduce((s, g) => s + (g.r || 0), 0);
-  ana().innerHTML = `
-  <section class="panel hakkinda">
-    <div class="hk-ust">
-      <div class="hk-logo" aria-hidden="true">J<span>N</span></div>
-      <div>
-        <h1>${U.ad}</h1>
-        <p class="soluk">Sürüm ${U.surum} · ${U.yil}</p>
-      </div>
-    </div>
-    <p>İngilizce kelime öğrenmeyi bulmacalarla eğlenceli hale getiren, aralıklı tekrar sistemine dayalı kişisel çalışma uygulaması.
-      Ekranda alıştırmalar ve oyunlar, kağıtta yazdırılabilir bulmacalar sunar; kelimeleri hem İngilizceden Türkçeye hem de Türkçeden İngilizceye çalıştırır.</p>
-    <p class="hk-imza">Bu uygulama <b>${U.yazar}</b> tarafından kişisel bir proje olarak geliştirilmiştir ve <b>tamamen ücretsiz</b> olarak dağıtılmaktadır.</p>
-    <p><b>Telif Hakkı © ${U.yil} ${U.yazar}.</b> Tüm hakları saklıdır. Uygulamanın dağıtılan her kopyasında yazar bilgisi ve bu telif bildirimi korunmalıdır;
-      uygulama ya da herhangi bir parçası başka bir kişinin eseriymiş gibi sunulamaz.</p>
-    <p>Bu program <b>HİÇBİR GARANTİ OLMAKSIZIN</b>, “olduğu gibi” sunulmaktadır.</p>
-    <div class="iletisim">
-      <div><b>Görüş, öneri ya da hata bildirimi</b><span class="soluk">Bana Instagram'dan yazabilirsin.</span></div>
-      <a class="ana-btn" href="https://instagram.com/${U.instagram}" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-        @${U.instagram}</a>
-    </div>
-  </section>
-
-  <section class="iki">
-    <div class="panel">
-      <h2>Nasıl çalışır?</h2>
-      <ul class="hk-liste">
-        <li>Her gün belirlediğin sayıda <b>yeni kelime</b> karışık sırayla gelir.</li>
-        <li>Her kelime üç yönden izlenir: <b>anlama</b> (İngilizce → Türkçe), <b>bağlam</b> (boşluklu cümle) ve <b>üretme</b> (tanımdan ya da Türkçeden İngilizceye).</li>
-        <li>Doğru bildiğin alıştırma <b>1, 3, 7, 14, 30, 60, 180 ve 360</b> gün sonra yeniden sorulur; yanlış bildiğin hemen başa döner.</li>
-        <li>360 günlük tekrarı da üç yönde bilen kelime <b>şeref tribününe</b> çıkar ve bir daha sorulmaz.</li>
-        <li>Sözlükten kelime ekleyebilir, düzenleyebilir, silebilirsin. Öğrendiğin bir kelimenin içeriği değişirse yeniden öğrenilecekler arasına alınır.</li>
-        <li>Kelime ilerledikçe alıştırma zorlaşır: şıktan seçme → harf dizme → ipuçlu yazma → serbest yazma.</li>
-        <li>Kağıtta çözdüğün bulmacaların sonuçlarını girersen tekrar takvimi onları da hesaba katar.</li>
-      </ul>
-    </div>
-    <div class="panel">
-      <h2>Bu kurulumda</h2>
-      <dl class="hk-bilgi">
-        <dt>Kelime listesi</dt><dd>${K.length.toLocaleString('tr-TR')} kelime</dd>
-        <dt>Tanıştığın kelimeler</dt><dd>${tanisilan.toLocaleString('tr-TR')}</dd>
-        <dt>Toplam cevap</dt><dd>${toplamCevap.toLocaleString('tr-TR')}</dd>
-        <dt>Kağıt bulmacalar</dt><dd>${P.kagit.length}</dd>
-        <dt>Tema</dt><dd>${esc(P.ayar.tema)}</dd>
-      </dl>
-      <h2>Gizlilik</h2>
-      <p class="soluk">Uygulama çalışmak için internet gerektirmez. İlerlemen bu tarayıcıda, (seçtiysen) kendi ilerleme dosyanda ve
-        (bağladıysan) kendi Google Drive'ında ya da GitHub hesabında tutulur; başka hiçbir yere gönderilmez. Seslendirme, cihazının yerleşik İngilizce sesleriyle yapılır.
-        <a href="gizlilik.html">Gizlilik politikası</a></p>
-    </div>
-  </section>`;
-}
+/* Hakkında, karşılama ve kılavuz ekranları: vitrin.js */
 
 /* ================= Başlat ================= */
 yukle();
-{ const h = location.hash.slice(1); const ilk = EKRANLAR.includes(h) && h !== 'calis' ? h : 'bugun';
+{ const h = location.hash.slice(1); let ilk = EKRANLAR.includes(h) && h !== 'calis' ? h : 'bugun';
+  // Uygulama her açılışta karşılama (ana sayfa) ile başlar; belirli bir bölümün bağlantısıyla gelindiyse o bölüm açılır
+  if (!h || h === 'bugun') ilk = 'karsilama';
   history.replaceState({ ekran: ilk }, '', '#' + ilk); aktifEkran = ilk; git(ilk, false); }
 // Ana ekrana eklenebilen uygulama: dosyaları önbelleğe al, internetsiz de açılsın
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 Senkron.baslat();
 Bulut.baslat();
+// Anonim ziyaret sayımı (yalnızca anadilimgibi.com'da)
+if (ZIYARET_SAYACI.kod && location.hostname.replace(/^www\./, '') === ZIYARET_SAYACI.alanAdi) {
+  const sc = document.createElement('script');
+  sc.async = true; sc.src = 'https://gc.zgo.at/count.js';
+  sc.dataset.goatcounter = `https://${ZIYARET_SAYACI.kod}.goatcounter.com/count`;
+  document.head.appendChild(sc);
+}
 Basari.kontrol();

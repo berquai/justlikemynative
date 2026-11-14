@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#2f6f5e"/><text x="256" y="330" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="800" font-size="250" letter-spacing="-12" fill="#ffffff">J<tspan fill-opacity=".7">N</tspan></text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#2f6f5e"/>
+<path d="M150 430c-10-120 10-250 120-290 70-26 140 6 150 80 6 44-20 70-56 78-30 6-46 30-40 62l14 70l10 170H146z" fill="#5aa58b"/>
+<path d="M196 600V430c0-80 20-150 80-176" fill="none" stroke="#2f6f5e" stroke-width="14" stroke-linecap="round" opacity=".5"/>
+<path d="M372 214c44 0 76 26 76 62 0 22-14 36-30 30-12-4-14-20-30-26-12-4-26 0-34-10-12-16-2-56 18-56z" fill="#e8a54b"/>
+<circle cx="318" cy="200" r="30" fill="#fff"/>
+<circle cx="326" cy="200" r="14" fill="#1f2328"/>
+<circle cx="331" cy="195" r="5" fill="#fff"/>
+<path d="M226 156c10-40 40-66 80-74" fill="none" stroke="#f3d36b" stroke-width="22" stroke-linecap="round"/>
+</svg>

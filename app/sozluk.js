@@ -1,4 +1,4 @@
-// JustLikeMyNative — Sözlük: arama, kelime ekleme, düzenleme, silme
+// AnadilimGibi — Sözlük: arama, kelime ekleme, düzenleme, silme
 // Copyright (C) 2026 Berkay Çelik
 'use strict';
 
@@ -29,7 +29,7 @@ function kaynakAd(id) {
   const o = P.sozluk[id];
   if (o && o.kaynak === 'ekle') return { kod: 'ekle', ad: 'Senin eklediğin' };
   if (o && !o.silindi) return { kod: 'duzen', ad: 'Düzenlendi' };
-  return { kod: 'excel', ad: 'Excel listesi' };
+  return { kod: 'excel', ad: 'Hazır liste' };
 }
 function silinenler() {
   return Object.entries(P.sozluk).filter(([, v]) => v === null || (v && v.silindi)).map(([id, v]) => {
@@ -47,7 +47,9 @@ function gunMetni(ds) {
 }
 
 /* ---------- Sözlük ekranı ---------- */
-const SozlukDurum = { q: '', durum: '', kaynak: '', harf: '', limit: 100 };
+const GOSTER = [20, 50, 100, 200];
+const SozlukDurum = { q: '', durum: '', kaynak: '', harf: '', lv: '', tp: '', sayfa: 0,
+  boyut: (() => { try { const n = +localStorage.getItem('kelimeBulmaca.sozlukBoyut'); return GOSTER.includes(n) ? n : 20; } catch (e) { return 20; } })() };
 
 function ekranSozluk() {
   const S = SozlukDurum;
@@ -66,11 +68,13 @@ function ekranSozluk() {
       <select id="fDurum" aria-label="Duruma göre süz"><option value="">Tüm durumlar</option>${DURUM_SIRA.map(d => `<option value="${d}" ${S.durum === d ? 'selected' : ''}>${DURUM_AD[d]}</option>`).join('')}</select>
       <select id="fKaynak" aria-label="Kaynağa göre süz">
         <option value="">Tüm kaynaklar</option>
-        <option value="excel" ${S.kaynak === 'excel' ? 'selected' : ''}>Excel listesi</option>
+        <option value="excel" ${S.kaynak === 'excel' ? 'selected' : ''}>Hazır liste</option>
         <option value="ekle" ${S.kaynak === 'ekle' ? 'selected' : ''}>Eklediklerim</option>
         <option value="duzen" ${S.kaynak === 'duzen' ? 'selected' : ''}>Düzenlediklerim</option>
         <option value="silinen" ${S.kaynak === 'silinen' ? 'selected' : ''}>Silinenler</option>
       </select>
+      ${etiketSecimHtml(S.lv, S.tp, { etiketli: false })}
+      <label class="goster">Göster <select id="fBoyut" aria-label="Sayfadaki satır sayısı">${GOSTER.map(n => `<option value="${n}" ${S.boyut === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
     </div>
     <div class="harf-dizin" role="group" aria-label="Harfe göre">
       <button class="${!S.harf ? 'aktif' : ''}" data-harf="">Tümü</button>${harfler.map(h => `<button class="${S.harf === h ? 'aktif' : ''}" data-harf="${h}">${h}</button>`).join('')}
@@ -79,10 +83,13 @@ function ekranSozluk() {
   </section>`;
   $('#yeniKelime').onclick = () => kelimeFormu();
   $('#csvAl').onclick = csvIndir;
-  const yenile = () => { S.limit = 100; listeCiz(); };
+  const yenile = () => { S.sayfa = 0; listeCiz(); };
   $('#ara').oninput = e => { S.q = e.target.value; yenile(); };
   $('#fDurum').onchange = e => { S.durum = e.target.value; yenile(); };
   $('#fKaynak').onchange = e => { S.kaynak = e.target.value; yenile(); };
+  document.querySelector('.liste-ust [name=lv]').onchange = e => { S.lv = e.target.value; yenile(); };
+  document.querySelector('.liste-ust [name=tp]').onchange = e => { S.tp = e.target.value; yenile(); };
+  $('#fBoyut').onchange = e => { S.boyut = +e.target.value; try { localStorage.setItem('kelimeBulmaca.sozlukBoyut', S.boyut); } catch (x) { } yenile(); };
   document.querySelectorAll('[data-harf]').forEach(b => b.onclick = () => {
     S.harf = b.dataset.harf; document.querySelectorAll('[data-harf]').forEach(x => x.classList.toggle('aktif', x === b)); yenile();
   });
@@ -95,6 +102,7 @@ function listeCiz() {
   if (S.kaynak === 'silinen') l = silinenler();
   else l = K.filter(k => (!S.durum || durum(k.id) === S.durum) && (!S.kaynak || kaynakAd(k.id).kod === S.kaynak));
   if (S.harf) l = l.filter(k => anahtar(k.w).toUpperCase().startsWith(S.harf));
+  if (S.lv || S.tp) l = etiketSuz(l, S.lv, S.tp);
   if (q) {
     l = l.filter(k => anahtar(k.w).includes(q) || (k.tr || '').toLowerCase().includes(q) || (k.d || '').toLowerCase().includes(q));
     // tam eşleşme ve başta geçenler önce
@@ -102,6 +110,9 @@ function listeCiz() {
   } else l.sort((a, b) => anahtar(a.w).localeCompare(anahtar(b.w), 'en'));
 
   const silinenMod = S.kaynak === 'silinen';
+  const sayfaSay = Math.max(1, Math.ceil(l.length / S.boyut));
+  S.sayfa = Math.min(Math.max(0, S.sayfa), sayfaSay - 1);
+  const bas = S.sayfa * S.boyut;
   const satir = k => {
     const d = silinenMod ? null : durum(k.id);
     return `<li class="sz-satir" data-id="${esc(k.id)}" tabindex="0">
@@ -114,11 +125,14 @@ function listeCiz() {
   $('#sozlukListe').innerHTML = !l.length
     ? `<div class="bos-durum"><p>${q ? `“${esc(S.q)}” sözlükte bulunamadı.` : 'Bu süzgeçle eşleşen kelime yok.'}</p>
         ${q && !silinenMod ? `<button class="ana-btn" id="aranaEkle">“${esc(S.q.trim())}” kelimesini ekle</button>` : ''}</div>`
-    : `<p class="soluk kucuk">${l.length.toLocaleString('tr-TR')} sonuç</p>
-       <ul class="sz-liste">${l.slice(0, S.limit).map(satir).join('')}</ul>
-       ${l.length > S.limit ? `<div class="butonlar orta"><button class="btn" id="dahaFazla">Daha fazla göster (${(l.length - S.limit).toLocaleString('tr-TR')} kaldı)</button></div>` : ''}`;
+    : `<p class="soluk kucuk">${l.length.toLocaleString('tr-TR')} sonuç${sayfaSay > 1 ? ` · ${bas + 1}–${Math.min(l.length, bas + S.boyut)} arası gösteriliyor` : ''}</p>
+       <ul class="sz-liste">${l.slice(bas, bas + S.boyut).map(satir).join('')}</ul>
+       ${sayfaSay > 1 ? `<nav class="sayfalama" aria-label="Sayfalar">
+         <button class="btn kucuk" data-sayfa="${S.sayfa - 1}" ${S.sayfa === 0 ? 'disabled' : ''}>‹ Önceki</button>
+         <span class="soluk">Sayfa ${S.sayfa + 1} / ${sayfaSay}</span>
+         <button class="btn kucuk" data-sayfa="${S.sayfa + 1}" ${S.sayfa >= sayfaSay - 1 ? 'disabled' : ''}>Sonraki ›</button></nav>` : ''}`;
   $('#aranaEkle')?.addEventListener('click', () => kelimeFormu(null, { w: S.q.trim() }));
-  $('#dahaFazla')?.addEventListener('click', () => { S.limit += 200; listeCiz(); });
+  document.querySelectorAll('#sozlukListe [data-sayfa]').forEach(b => b.onclick = () => { S.sayfa = +b.dataset.sayfa; listeCiz(); $('#sozlukListe').scrollIntoView({ block: 'start' }); });
   document.querySelectorAll('#sozlukListe [data-geri]').forEach(b => b.onclick = e => { e.stopPropagation(); geriYukle(b.dataset.geri); });
   if (!silinenMod) document.querySelectorAll('#sozlukListe .sz-satir').forEach(li => {
     li.onclick = () => kelimeDetay(li.dataset.id);
@@ -142,7 +156,7 @@ function kelimeDetay(id) {
       <span class="etiket">${kay.ad}</span>
       ${w ? `<span class="etiket">Tanışma: ${new Date(w.i + 'T12:00').toLocaleDateString('tr-TR')}</span>` : ''}
       ${w?.x ? `<span class="etiket">${w.x} kez yanlış</span>` : ''}
-      ${w?.seref ? `<span class="etiket altin">🏆 Şeref tribününde (${new Date(w.seref + 'T12:00').toLocaleDateString('tr-TR')})</span>` : ''}
+      ${w?.seref ? `<span class="etiket altin">🏆 Şeref Tribünü'nde (${new Date(w.seref + 'T12:00').toLocaleDateString('tr-TR')})</span>` : ''}
     </div>
     ${w && !w.seref ? `<table class="tablo kucuk-tablo"><thead><tr><th>Yön</th><th>Kutu</th><th>Sıradaki tekrar</th></tr></thead><tbody>${['r', 'c', 'p'].map(modSatir).join('')}</tbody></table>` : ''}
     <div class="butonlar">
@@ -159,7 +173,7 @@ function kelimeDetay(id) {
     e.target.textContent = '✓ Sıradaki yeni kelimelerde'; bildir('Bir sonraki çalışmada ilk sırada gelecek');
   });
   $('#dIndir', el)?.addEventListener('click', () => {
-    if (!confirm(`“${k.w}” şeref tribününden indirilip yeniden öğrenilecekler havuzuna alınsın mı?`)) return;
+    if (!confirm(`“${k.w}” Şeref Tribünü'nden indirilip yeniden öğrenilecekler havuzuna alınsın mı?`)) return;
     yenidenOgren(id); kaydet(); kapat(); bildir('Kelime yeniden öğrenilecekler arasına alındı'); git(aktifEkran);
   });
   $('#dSil', el).onclick = () => { if (kelimeSil(id)) { kapat(); git(aktifEkran); } };
@@ -308,6 +322,6 @@ function csvIndir() {
     .map(k => [k.w, k.pr, k.tr, k.d, (k.ex || []).join(' | '), k.p, DURUM_AD[durum(k.id)], kaynakAd(k.id).ad].map(hucre).join(';'));
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿' + [h.join(';'), ...satirlar].join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-  a.download = `justlikemynative-sozluk-${bugun()}.csv`; a.click();
+  a.download = `anadilimgibi-sozluk-${bugun()}.csv`; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }

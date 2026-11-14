@@ -1,4 +1,4 @@
-// JustLikeMyNative — renk temaları
+// AnadilimGibi — renk temaları
 // Copyright (C) 2026 Berkay Çelik
 'use strict';
 

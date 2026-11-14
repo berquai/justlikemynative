@@ -117,7 +117,7 @@ function ekranKarsilama() {
     <div class="vk-metin">
       <p class="vk-ust">Ücretsiz · Sınırsız · Reklamsız</p>
       <h1>Kelime bilgini <span>kalıcı olarak</span> artır.</h1>
-      <p class="vk-alt">İngilizceni geliştirmek isteyenler için aralıklı tekrar, bulmacalar ve oyunlarla kelime çalışma uygulaması. Hiçbir ücret ödemeden, istediğin kadar.</p>
+      <p class="vk-alt">İngilizcesini geliştirmek isteyenler için aralıklı tekrar, bulmacalar ve oyunlarla kelime çalışma uygulaması. Hiçbir ücret ödemeden, istediğin kadar.</p>
       <div class="butonlar">
         <button class="ana-btn buyuk-btn" id="hadiBasla">Hadi başla ${ikon('ok')}</button>
         <button class="btn buyuk-btn" data-git="kilavuz">Nasıl çalışır?</button>

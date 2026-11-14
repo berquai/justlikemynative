@@ -2,10 +2,73 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JustLikeMyNative</title>
-<meta http-equiv="refresh" content="0; url=JustLikeMyNative.html">
-<script>location.replace('JustLikeMyNative.html' + location.hash);</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="author" content="Berkay Çelik">
+<meta name="description" content="AnadilimGibi: aralıklı tekrar, bulmacalar ve oyunlarla İngilizce kelime öğrenmek için tamamen ücretsiz uygulama.">
+<meta name="theme-color" content="#2f6f5e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AnadilimGibi">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="app/ikon.svg" type="image/svg+xml">
+<link rel="icon" href="app/ikon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="app/ikon-180.png">
+<title>AnadilimGibi</title>
+<link rel="stylesheet" href="app/stil.css?v=10">
+<script>
+  // Tema rengini sayfa çizilmeden uygula (açılışta renk sıçramasın)
+  try {
+    var p = JSON.parse(localStorage.getItem('kelimeBulmaca.v1') || '{}');
+    if (p.ayar && p.ayar.temaRenk) for (var k in p.ayar.temaRenk) document.documentElement.style.setProperty(k, p.ayar.temaRenk[k]);
+  } catch (e) {}
+</script>
 </head>
-<body><p><a href="JustLikeMyNative.html">JustLikeMyNative'i aç</a></p></body>
+<body>
+<header class="ust">
+  <a class="logo" href="#karsilama" data-git="karsilama" title="Ana sayfa"><img src="app/ikon.svg" width="30" height="30" alt=""><span class="ad">Anadilim<em>Gibi</em></span></a>
+  <nav class="ust-nav">
+    <button data-git="bugun">Bugün</button>
+    <button data-git="calis">Çalış</button>
+    <button data-git="etut">Etüt</button>
+    <button data-git="oyun">Oyunlar</button>
+    <button data-git="sozluk">Sözlük</button>
+    <button class="daha-ac" aria-haspopup="true" aria-expanded="false" aria-controls="dahaMenu">Daha <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+  </nav>
+</header>
+<main id="ana"></main>
+<footer class="alt"><nav aria-label="Alt bilgi"><a href="gizlilik.html">Gizlilik</a> · <a href="kosullar.html">Kullanım Koşulları</a> · <a href="#kilavuz" data-git="kilavuz">Kılavuz</a> · <a href="https://instagram.com/berkay.celik52" target="_blank" rel="noopener">Instagram</a> · <span>© 2026 AnadilimGibi</span></nav></footer>
+
+<!-- Telefonda alt sekme çubuğu -->
+<nav class="alt-nav" aria-label="Ana menü">
+  <button data-git="bugun"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Bugün</span></button>
+  <button data-git="calis"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg><span>Çalış</span></button>
+  <button data-git="etut"><svg viewBox="0 0 24 24"><path d="M6 2h12M6 22h12M7 2c0 5 10 6 10 10S7 17 7 22M17 2c0 5-10 6-10 10s10 5 10 10"/></svg><span>Etüt</span></button>
+  <button data-git="oyun"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 10.5v4M5 12.5h4M15.5 11.5h.01M18 13.5h.01"/></svg><span>Oyunlar</span></button>
+  <button data-git="sozluk"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Sözlük</span></button>
+  <button id="dahaBtn" class="daha-ac" aria-haspopup="true" aria-expanded="false" aria-controls="dahaMenu"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg><span>Daha</span></button>
+</nav>
+<div id="dahaMenu" class="daha" hidden>
+  <div class="daha-ic" role="menu">
+    <button data-git="kagit"><svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><path d="M6 14h12v7H6z"/></svg>Yazdır-Çöz</button>
+    <button data-git="istatistik"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>İstatistik</button>
+    <button data-git="basari"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/></svg>Başarılar</button>
+    <button data-git="ayar"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ayarlar</button>
+    <button data-git="kilavuz"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M12 7.5a1.8 1.8 0 1 1 1.6 2.6c-.9.3-1.6.9-1.6 1.9M12 14.5h.01"/></svg>Kılavuz</button>
+    <button data-git="hakkinda"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>Hakkında</button>
+  </div>
+</div>
+
+<script src="app/kelimeler.js?v=10"></script>
+<script src="app/bulmaca.js?v=10"></script>
+<script src="app/tema.js?v=10"></script>
+<script src="app/sozluk.js?v=10"></script>
+<script src="app/istatistik.js?v=10"></script>
+<script src="app/madalya.js?v=10"></script>
+<script src="app/basari.js?v=10"></script>
+<script src="app/bulut.js?v=10"></script>
+<script src="app/vitrin.js?v=10"></script>
+<script src="app/etut.js?v=10"></script>
+<script src="app/yds.js?v=10"></script>
+<script src="app/app.js?v=10"></script>
+</body>
 </html>

@@ -1,9 +1,11 @@
-// JustLikeMyNative — çevrimdışı çalışma için önbellek
+// AnadilimGibi — çevrimdışı çalışma için önbellek
 // Önce önbellekten açar (hızlı ve internetsiz), arka planda yenisini indirip bir sonraki açılışta kullanır.
-const ONBELLEK = 'jlmn-v1';
-const DOSYALAR = ['./', 'index.html', 'JustLikeMyNative.html', 'manifest.webmanifest', 'app/stil.css', 'app/ikon.svg',
+// Her yayında sürüm numarasını bir artır (jlmn-v2 → jlmn-v3 …).
+const ONBELLEK = 'jlmn-v10';
+const DOSYALAR = ['./', 'index.html', 'JustLikeMyNative.html', 'gizlilik.html', 'kosullar.html', 'manifest.webmanifest', 'app/stil.css',
+  'app/ikon.svg', 'app/ikon-180.png', 'app/ikon-192.png', 'app/ikon-512.png', 'app/ikon-maskable-512.png',
   'app/kelimeler.js', 'app/bulmaca.js', 'app/tema.js', 'app/sozluk.js', 'app/istatistik.js', 'app/madalya.js',
-  'app/basari.js', 'app/bulut.js', 'app/app.js'];
+  'app/basari.js', 'app/bulut.js', 'app/vitrin.js', 'app/etut.js', 'app/yds.js', 'app/app.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(ONBELLEK).then(c => c.addAll(DOSYALAR)).then(() => self.skipWaiting()));

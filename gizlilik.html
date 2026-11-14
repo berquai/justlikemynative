@@ -3,53 +3,99 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gizlilik Politikası · JustLikeMyNative</title>
+<meta name="theme-color" content="#2f6f5e">
+<title>Gizlilik Politikası · AnadilimGibi</title>
+<meta name="description" content="AnadilimGibi gizlilik politikası: hangi veriler, nerede ve nasıl tutulur.">
 <link rel="icon" href="app/ikon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="app/ikon-180.png">
 <style>
-  :root { --zemin: #f6f3ee; --yuzey: #fff; --yazi: #1f2328; --soluk: #6b6f76; --vurgu: #2f6f5e; --cizgi: #e2dcd1; }
-  @media (prefers-color-scheme: dark) { :root { --zemin: #16181b; --yuzey: #1f2226; --yazi: #e8e6e3; --soluk: #9aa0a6; --vurgu: #6cc0a5; --cizgi: #353a40; } }
-  body { margin: 0; background: var(--zemin); color: var(--yazi); font: 16px/1.6 "Segoe UI", system-ui, -apple-system, sans-serif; }
-  main { max-width: 720px; margin: 0 auto; padding: 2rem 16px 4rem; }
-  article { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 14px; padding: 1.5rem; }
-  h1 { font-size: 1.6rem; margin: 0 0 .2rem; } h2 { font-size: 1.1rem; margin: 1.6rem 0 .4rem; }
+  :root { --zemin: #f6f3ee; --yuzey: #fff; --yazi: #1f2328; --soluk: #6b6f76; --vurgu: #2f6f5e; --vurgu-acik: #dcece6; --cizgi: #e2dcd1; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --zemin: #16181b; --yuzey: #1f2226; --yazi: #e8e6e3; --soluk: #9aa0a6; --vurgu: #6cc0a5; --vurgu-acik: #1f3a32; --cizgi: #353a40; color-scheme: dark; } }
+  body { margin: 0; background: var(--zemin); color: var(--yazi); font: 16px/1.65 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 1.5rem 16px 2rem; }
+  .ust { display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; text-decoration: none; color: var(--yazi); font-weight: 700; font-size: 1.1rem; }
+  .ust img { border-radius: 8px; } .ust em { font-style: normal; color: var(--vurgu); }
+  article { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 16px; padding: 1.6rem; }
+  h1 { font-size: 1.7rem; margin: 0 0 .2rem; letter-spacing: -.01em; } h2 { font-size: 1.1rem; margin: 1.8rem 0 .4rem; }
   .soluk { color: var(--soluk); } a { color: var(--vurgu); }
-  .geri { display: inline-block; margin-bottom: 1rem; }
+  .ozet { background: var(--vurgu-acik); border-radius: 12px; padding: .9rem 1.1rem; margin: 1.2rem 0 0; }
+  .ozet ul { margin: .3rem 0 0; padding-left: 1.2rem; }
+  li { margin-bottom: .3rem; }
+  footer { text-align: center; color: var(--soluk); font-size: .85rem; padding: 1.5rem 16px 2rem; }
+  footer a { color: var(--soluk); }
+  @media (max-width: 600px) { article { padding: 1.1rem; } h1 { font-size: 1.4rem; } }
 </style>
 </head>
 <body>
 <main>
-  <a class="geri" href="JustLikeMyNative.html">← JustLikeMyNative'e dön</a>
+  <a class="ust" href="./"><img src="app/ikon.svg" width="32" height="32" alt=""><span class="ad">Anadilim<em>Gibi</em></span></a>
   <article>
     <h1>Gizlilik Politikası</h1>
-    <p class="soluk">JustLikeMyNative · Son güncelleme: 13 Kasım 2026</p>
+    <p class="soluk">Son güncelleme: 14 Kasım 2026</p>
 
-    <p>JustLikeMyNative, Berkay Çelik tarafından geliştirilen ücretsiz bir İngilizce kelime çalışma uygulamasıdır.
-      Uygulamanın kendi sunucusu yoktur; hiçbir kişisel veri geliştiriciye ya da üçüncü kişilere gönderilmez, satılmaz veya paylaşılmaz.</p>
+    <div class="ozet"><b>Kısaca</b>
+      <ul>
+        <li>AnadilimGibi'nin kendi sunucusu yoktur; kişisel verin geliştiriciye gönderilmez.</li>
+        <li>Çerez, reklam ya da kişisel izleme yoktur; yalnızca anonim ziyaretçi sayısı tutulur.</li>
+        <li>İlerlemen cihazında; yalnızca sen bağlarsan kendi Google Drive'ında ya da GitHub hesabında tutulur.</li>
+      </ul>
+    </div>
 
-    <h2>Hangi veriler tutulur?</h2>
-    <p>Yalnızca çalışma ilerlemen: hangi kelimeleri çalıştığın, tekrar takvimin, istatistiklerin, başarıların, sözlükte yaptığın değişiklikler ve uygulama ayarların.
-      Bu veriler varsayılan olarak yalnızca kendi cihazındaki tarayıcıda saklanır.</p>
+    <h2>Uygulama hakkında</h2>
+    <p>AnadilimGibi (anadilimgibi.com), Berkay Çelik tarafından geliştirilen, tamamen ücretsiz bir İngilizce kelime çalışma uygulamasıdır.
+      Uygulama tarayıcında çalışır. Hiçbir kişisel veri geliştiriciye ya da üçüncü kişilere satılmaz, kiralanmaz veya paylaşılmaz.</p>
+
+    <h2>Hangi veriler tutulur, nerede?</h2>
+    <p>Yalnızca çalışma ilerlemen tutulur: hangi kelimeleri çalıştığın, tekrar takvimin, istatistiklerin, başarıların, sözlükte yaptığın değişiklikler ve uygulama ayarların.
+      Bu veriler cihazındaki tarayıcının yerel depolama alanında (localStorage) saklanır. Tarayıcı verilerini silersen bu ilerleme de silinir; bu yüzden eşitleme ya da yedek kullanmanı öneririz.</p>
+    <p>Bilgisayarda “ilerleme dosyası” özelliğini kullanırsan ilerlemen ayrıca kendi seçtiğin bir dosyaya yazılır. Bu dosya senin bilgisayarında kalır.</p>
 
     <h2>Google ile giriş ve Google Drive</h2>
     <p>Google ile giriş yapmayı seçersen uygulama, Google'dan yalnızca <b>drive.file</b> iznini ister. Bu izinle uygulama
       Google Drive'ında yalnızca kendi oluşturduğu <b>justlikemynative-ilerleme.json</b> dosyasını görebilir, okuyabilir ve güncelleyebilir;
-      Drive'ındaki diğer dosyalara erişemez. Bu dosya ilerlemeni cihazların arasında eşitlemek için kullanılır.</p>
+      Drive'ındaki diğer dosyalara erişemez. Bu dosya ilerlemeni cihazların arasında eşitlemek için kullanılır. (Dosya adı, uygulamanın önceki adından gelir; mevcut kullanıcıların ilerlemesi kaybolmasın diye değiştirilmemiştir.)</p>
     <p>Bağlı hesabı göstermek için Google hesabının e-posta adresi okunur ve yalnızca cihazındaki tarayıcıda saklanır.
       Google'dan alınan erişim anahtarı da yalnızca tarayıcında tutulur ve yalnızca Google'a gönderilir.</p>
-    <p>JustLikeMyNative'in Google API'lerinden aldığı bilgileri kullanması ve başka bir uygulamaya aktarması,
+    <p>Giriş düğmesinin hazır olması için sayfa açıldığında Google'ın giriş kitaplığı (accounts.google.com) yüklenir. Bu sırada Google, her web sitesinde olduğu gibi IP adresin ve tarayıcı bilgilerin gibi teknik verileri görebilir; bu veriler <a href="https://policies.google.com/privacy?hl=tr" target="_blank" rel="noopener">Google Gizlilik Politikası</a>'na tabidir.</p>
+    <p>AnadilimGibi'nin Google API'lerinden aldığı bilgileri kullanması ve başka bir uygulamaya aktarması,
       Sınırlı Kullanım (Limited Use) koşulları dahil olmak üzere
       <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Hizmetleri Kullanıcı Verileri Politikası</a>'na uyar.</p>
 
     <h2>GitHub ile eşitleme (isteğe bağlı)</h2>
     <p>GitHub ile eşitlemeyi seçersen ilerlemen GitHub hesabındaki gizli bir Gist'te tutulur. Girdiğin erişim anahtarı yalnızca tarayıcında saklanır ve yalnızca GitHub'a gönderilir.</p>
 
+    <h2>Seslendirme</h2>
+    <p>Kelimeler ve örnek cümleler, tarayıcının ve cihazının seslendirme özelliğiyle okunur. Seslerin çoğu cihazın içindedir; ancak bazı tarayıcılar
+      (örneğin Chrome'un “Google” adlı sesleri) okunacak metni seslendirme için tarayıcı sağlayıcısının sunucularına gönderebilir. Okunan metin yalnızca İngilizce kelime ve cümlelerdir.
+      İstersen Ayarlar'dan cihazındaki başka bir sesi seçebilirsin.</p>
+
+    <h2>Konuşma ve telaffuz kontrolü (isteğe bağlı)</h2>
+    <p>Etüt Köşesi'ndeki gölgeleme alıştırması, söylediklerini kontrol etmek için tarayıcının konuşma tanıma özelliğini kullanır.
+      Bu özellik tamamen isteğe bağlıdır ve yalnızca sen başlattığında çalışır. Kullanmadan önce tarayıcın senden <b>mikrofon izni</b> ister; izni istediğin zaman tarayıcı ayarlarından geri alabilirsin.</p>
+    <p>Chrome gibi bazı tarayıcılarda konuşma tanıma, mikrofondan gelen sesi tanıma için tarayıcı sağlayıcısının (örneğin Google'ın) sunucularına gönderebilir.
+      Bu işlem tarayıcı ile sağlayıcı arasında gerçekleşir; ses kaydın AnadilimGibi tarafından saklanmaz ve geliştiriciye ulaşmaz.</p>
+
+    <h2>Ziyaretçi sayısı</h2>
+    <p>Kaç kişinin uygulamayı kullandığını görebilmek için açık kaynaklı ve gizlilik odaklı <a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a> sayacı kullanılır.
+      Sayaç <b>çerez kullanmaz</b> ve seni tanımlayan hiçbir bilgi saklamaz. Sayfa her açıldığında yalnızca şu genel bilgiler gönderilir: açılan sayfa, nereden gelindiği (varsa), tarayıcı ve işletim sistemi türü, ekran boyutu ve IP adresinden tahmin edilen ülke.
+      IP adresin saklanmaz; aynı ziyaretin iki kez sayılmaması için kısa süreli, geri döndürülemez bir özet kullanılır. Bu bilgiler yalnızca toplam sayılar olarak görülür ve kimseyle paylaşılmaz.
+      Çalışma ilerlemen, sözlüğün ve hesap bilgilerin sayaca hiçbir zaman gönderilmez. Tarayıcında reklam ve izleme engelleyici varsa sayaç hiç çalışmayabilir; uygulama bundan etkilenmez.</p>
+
+    <h2>Çerezler ve izleme</h2>
+    <p>AnadilimGibi çerez kullanmaz; reklam ya da kişisel izleme aracı içermez. Yerel depolama yalnızca uygulamanın çalışması için kullanılır.</p>
+
     <h2>Verilerini silmek</h2>
-    <p>Uygulamanın Ayarlar sayfasından bağlantıyı kesebilir ve tüm ilerlemeni sıfırlayabilirsin. Google Drive'ındaki ilerleme dosyasını Drive'dan silebilir,
-      uygulamanın erişimini <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google hesabı izinleri</a> sayfasından kaldırabilirsin.</p>
+    <p>Ayarlar sayfasından bağlantıları kesebilir ve tüm ilerlemeni sıfırlayabilirsin. Google Drive'ındaki ilerleme dosyasını Drive'dan silebilir,
+      uygulamanın erişimini <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google hesabı izinleri</a> sayfasından kaldırabilirsin.
+      Tarayıcının site verilerini temizlemek de cihazındaki bütün verileri siler.</p>
+
+    <h2>Değişiklikler</h2>
+    <p>Bu politika değişirse güncel hâli bu sayfada yayımlanır ve üstteki tarih güncellenir.</p>
 
     <h2>İletişim</h2>
-    <p>Soruların için Instagram: <a href="https://instagram.com/berkay.celik52" target="_blank" rel="noopener">@berkay.celik52</a></p>
+    <p>Sorularını Instagram'dan (<a href="https://instagram.com/berkay.celik52" target="_blank" rel="noopener">@berkay.celik52</a>) ya da info@anadilimgibi.com adresinden iletebilirsin.</p>
   </article>
 </main>
+<footer><a href="gizlilik.html">Gizlilik</a> · <a href="kosullar.html">Kullanım Koşulları</a> · <a href="./#kilavuz">Kılavuz</a> · <a href="https://instagram.com/berkay.celik52" target="_blank" rel="noopener">Instagram</a> · © 2026 AnadilimGibi</footer>
 </body>
 </html>

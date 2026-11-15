@@ -10,10 +10,22 @@ function modal(icerik, { genis = false } = {}) {
   document.body.appendChild(m);
   const eskiKlavye = klavye;
   const kapat = () => { m.remove(); klavye = eskiKlavye; document.removeEventListener('keydown', esc_); };
-  const esc_ = e => { if (e.key === 'Escape') kapat(); };
+  // Kazara kapanmaya karşı: forma bir şey yazıldıysa dış tıklama / Esc / geri tuşu önce sorar
+  let degisti = false;
+  m.addEventListener('input', () => { degisti = true; }, true);
+  const istekKapat = () => {
+    if (degisti && !confirm('Girdiğin bilgiler kaydedilmeden kapanacak. Pencere kapatılsın mı?')) return false;
+    kapat(); return true;
+  };
+  m._istekKapat = istekKapat;
+  const esc_ = e => { if (e.key === 'Escape' && !e.isComposing) istekKapat(); };
   document.addEventListener('keydown', esc_);
   klavye = null;
-  m.onclick = e => { if (e.target === m) kapat(); };
+  // Yalnızca basma da bırakma da dış alanda olduysa kapat. Kutuda metin seçerken fare dışarıda
+  // bırakılınca tarayıcı bunu dış alana "tıklama" sayar; eskiden pencere bu yüzden kapanıyordu.
+  let distaBasildi = false;
+  m.addEventListener('pointerdown', e => { distaBasildi = e.target === m; });
+  m.onclick = e => { if (e.target === m && distaBasildi) istekKapat(); distaBasildi = false; };
   m.querySelectorAll('[data-kapat]').forEach(b => b.onclick = kapat);
   return { el: m, kapat };
 }

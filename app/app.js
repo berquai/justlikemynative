@@ -241,7 +241,7 @@ document.addEventListener('click', e => {
   if (b) { e.preventDefault(); git(b.dataset.git); }
 });
 window.addEventListener('popstate', e => {
-  if ($('.modal')) { $('.modal').remove(); history.pushState({ ekran: aktifEkran }, '', '#' + aktifEkran); return; }
+  if ($('.modal')) { const md = $('.modal'); md._istekKapat ? md._istekKapat() : md.remove(); history.pushState({ ekran: aktifEkran }, '', '#' + aktifEkran); return; }
   if ($('#dahaMenu') && !$('#dahaMenu').hidden) { dahaKapat(); history.pushState({ ekran: aktifEkran }, '', '#' + aktifEkran); return; }
   const h = location.hash.slice(1);
   git(EKRANLAR.includes(h) ? h : 'bugun', false);

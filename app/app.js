@@ -118,6 +118,7 @@ function puanla(id, mod, dogru) {
   } else {
     s.b = 0; s.d = t; delete s.mezun; w.x = (w.x || 0) + 1; w.ds = 0;
   }
+  g.kalan = vadesiGelenler(t).length; // öğrenme takvimi: o gün tekrarların bitip bitmediği
   kaydet();
   Basari.kontrol();
 }

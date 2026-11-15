@@ -96,20 +96,82 @@ const Kurulum = (() => {
   return { html, bagla, yuklu, cihaz };
 })();
 
+/* ================= Günün kelimesi ================= */
+// Her gün herkese aynı kelime: telaffuzu, örnek cümlesi ve kullanım notu ya da eşdizimi olanlardan seçilir.
+const GununKelimesi = (() => {
+  let havuz = null, anlamDizini = null;
+  const parcalar = tr => tr.toLocaleLowerCase('tr').replace(/\(.*?\)/g, '').split(/[,;]/).map(x => x.trim()).filter(x => x.length > 2);
+  function sec(t = bugun()) {
+    havuz ||= K.filter(k => k.pr && k.ex?.length && (k.n || k.col) && !/[ğüşıöçĞÜŞİÖÇ]/.test(k.ex[0]));
+    if (!havuz.length) return null;
+    return havuz[hash('gunun-kelimesi:' + t) % havuz.length];
+  }
+  // Listede aynı Türkçe anlamı taşıyan İngilizce kelimeler (en çok üç)
+  function esAnlamlilar(k) {
+    if (!anlamDizini) {
+      anlamDizini = new Map();
+      for (const x of K) for (const p of parcalar(x.tr)) { if (!anlamDizini.has(p)) anlamDizini.set(p, []); anlamDizini.get(p).push(x); }
+    }
+    const tur = (k.p || '').split(/[\/ ]/)[0], gor = new Set([k.w.toLowerCase()]), l = [];
+    for (const p of parcalar(k.tr)) for (const x of anlamDizini.get(p) || []) {
+      const a = x.w.toLowerCase();
+      if (gor.has(a) || (x.p || '').split(/[\/ ]/)[0] !== tur) continue;
+      gor.add(a); l.push(x.w);
+    }
+    return l.slice(0, 3);
+  }
+  function isaretle(cumle, w) {
+    const e = esc(cumle), kok = esc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const r = new RegExp(`\\b(${kok}\\w*)`, 'i');
+    return r.test(e) ? e.replace(r, '<mark>$1</mark>') : e;
+  }
+  function html(t = bugun()) {
+    const k = sec(t); if (!k) return '';
+    const es = esAnlamlilar(k);
+    const tarih = new Date(t + 'T12:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+    const tanis = P.w[k.id], sirada = (P.oncelik || []).includes(k.id);
+    return `<article class="vk-kart gk-kart" aria-label="Günün kelimesi">
+      <div class="gk-ust"><span class="gk-etiket">Günün kelimesi</span><span>${tarih}</span></div>
+      <div class="vk-kart-ust"><b>${esc(k.w)}</b> ${sesBtn(k.w)} <span class="kk-pr">/${esc(k.pr)}/</span></div>
+      <div class="gk-tur">${esc(k.p || '')}${k.lv ? ` · ${esc(k.lv)}` : ''}</div>
+      <div class="vk-kart-tr">${esc(k.tr)}</div>
+      <div class="vk-kart-ex">${isaretle(k.ex[0], k.w)} ${sesBtn(k.ex[0])}</div>
+      ${es.length ? `<p class="gk-satir"><b>Eş anlamlı:</b> ${es.map(esc).join(', ')}</p>` : ''}
+      ${k.n ? `<p class="gk-satir"><b>Kullanım notu:</b> ${esc(k.n)}</p>` : ''}
+      ${k.col ? `<p class="gk-satir"><b>Sık birlikte:</b> ${esc(k.col)}</p>` : ''}
+      <div class="gk-alt">${tanis ? '<span class="soluk">✓ Bu kelimeyle zaten tanıştın</span>'
+        : `<button class="btn kucuk-btn" data-gk-ekle="${esc(k.id)}" ${sirada ? 'disabled' : ''}>${sirada ? '✓ Sıradaki yeni kelimelerde' : 'Çalışma listeme ekle'}</button>`}</div>
+    </article>`;
+  }
+  function bagla() {
+    document.querySelectorAll('[data-gk-ekle]').forEach(b => b.onclick = () => {
+      const id = b.dataset.gkEkle;
+      P.oncelik = [id, ...(P.oncelik || []).filter(x => x !== id)]; kaydet();
+      b.disabled = true; b.textContent = '✓ Sıradaki yeni kelimelerde';
+      bildir('Kelime, sıradaki yeni kelimelerinin başına eklendi');
+    });
+  }
+  return { sec, html, bagla };
+})();
+
 /* ================= Karşılama ================= */
 function ekranKarsilama() {
   const ornek = K.reduce((n, k) => n + (k.ex ? k.ex.length : 0), 0);
   const yuvarla = n => (Math.floor(n / 100) * 100).toLocaleString('tr-TR');
+  // İlk bakışta öne çıkan dört temel özellik
+  const temel = [
+    ['arti', 'Her gün birkaç yeni kelime öğren', 'Her gün yeni kelimelerle anlamı, telaffuzu ve örnek cümleleriyle tanış.'],
+    ['takvim', 'Unutmayacak şekilde tekrar et', 'Aralıklı tekrar, her kelimeyi tam unutmak üzereyken yeniden sorar: 1, 3, 7, 14… gün sonra.'],
+    ['oyun', 'Oyunlarla pekiştir', 'Çiçek büyüt, karışık harfler, kelime eşleştirme ve parçacık tamamlama (phrasal verb) ile öğrendiklerini eğlenerek pekiştir.'],
+    ['ses', 'Dinle, anla, telaffuzunu geliştir', 'Dikteyle duyduğunu hemen anla; gölgelemeyle cümleleri aynı ritimle tekrar ederek telaffuzunu geliştir.'],
+  ];
   const ozellikler = [
-    ['takvim', 'Aralıklı tekrar', 'Her kelimeyi tam unutmak üzereyken yeniden sorar: 1, 3, 7, 14, 30, 60, 180 ve 360 gün sonra. Az çalışırsın, kalıcı öğrenirsin.'],
     ['uc', 'Üç yönlü çalışma', 'Anlamını tanır, cümlenin içinde bulur, sonra kendin yazarsın. Kelime yalnızca tanıdık gelmez, gerçekten senin olur.'],
     ...(typeof ETUT_HAZIR !== 'undefined' && ETUT_HAZIR ? [['saat', 'Etüt Köşesi', 'Günlük rutinden bağımsız, süreli ve sınırsız çalışma: karışık alıştırma, dikte ya da gölgeleme. Sonunda yanlışlarını ve doğrularını gösteren bir karne.']] : []),
     ['kalem', 'Yazdır-Çöz', 'Çengel bulmaca, sözcük avı, boşluk doldurma… Kâğıda yazdır, kalemle çöz; sonuçlarını girince tekrar takvimin de güncellenir. Sınıf etkinlikleri için de çok uygun!'],
     ['yds', 'YDS ve YÖKDİL tarzı sorular', 'Kelime boşluğu, bağlaç ve edat seçimi, cümle tamamlama ve eşdizim (collocation) soruları; beş seçenekli, özgün.'],
-    ['oyun', 'Oyunlar', 'Çiçek büyüt, karışık harfler, kelime eşleştirme ve parçacık tamamlama (phrasal verb) ile tekrar etmeyi eğlenceye dönüştür.'],
     ['miknatis', `${PARCACIK_AD} (phrasal verb)`, 'Phrasal verb\'leri oyunla öğren: give up, give in, give away… Aynı fiilin farklı anlamlarını yan yana gör.'],
-    ['rozet', 'Başarılar ve rozetler', 'Taştan Efsane\'ye yedi seviyeli rozetler, seriler ve Şeref Tribünü emeğini görünür kılar.'],
-    ['ses', 'Dinle, yaz, konuş', 'Kelimeleri ve cümleleri dinle; dikteyle yaz, gölgelemeyle tekrar et. Destekleyen tarayıcılarda söylediklerin de kontrol edilir.'],
+    ['rozet', 'Başarılar, rozetler ve takvim', 'Taştan Efsane\'ye yedi seviyeli rozetler, seriler, öğrenme takvimi ve Şeref Tribünü emeğini görünür kılar.'],
     ['kitap', 'Düzenlenebilir sözlük', 'Kelime ekle, anlamı değiştir, kendi örneğini yaz. Sözlük senin çalışma defterine dönüşür.'],
     ['bulut', 'Cihazlar arası eşitleme', 'Google hesabınla giriş yap; telefonda başladığın yerden bilgisayarda devam et.'],
     ['ucak', 'İnternetsiz çalışma', 'Ana ekrana ekle; uçakta, metroda, internet yokken de kaldığın yerden devam et.'],
@@ -125,15 +187,14 @@ function ekranKarsilama() {
         <button class="btn buyuk-btn" data-git="kilavuz">Nasıl çalışır?</button>
       </div>
     </div>
-    <div class="vk-gorsel" aria-hidden="true">
+    <div class="vk-gorsel">
       ${logoImg(132, 'vk-logo')}
-      <div class="vk-kart">
-        <div class="vk-kart-ust"><b>resilience</b><span class="kk-pr">/ri-Zİ-li-ıns/</span></div>
-        <div class="vk-kart-tr">Direnç, dayanıklılık</div>
-        <div class="vk-kart-ex">The community showed great <mark>resilience</mark> after the earthquake.</div>
-        <div class="vk-kart-alt"><span class="nokta d-pekisti"></span> 14 gün sonra yeniden</div>
-      </div>
+      ${GununKelimesi.html()}
     </div>
+  </section>
+
+  <section class="vitrin-temel" aria-label="Temel özellikler">
+    ${temel.map(([i, b, a]) => `<article class="temel">${ikon(i)}<h2>${b}</h2><p>${a}</p></article>`).join('')}
   </section>
 
   <section class="vitrin-sayilar">
@@ -144,7 +205,7 @@ function ekranKarsilama() {
   </section>
 
   <section class="vitrin-bolum">
-    <h2>Neler yapabilirsin?</h2>
+    <h2>Daha fazlası</h2>
     <p class="soluk">Hepsi tek bir yerde, hepsi ücretsiz ve sınırsız.</p>
     <div class="ozellik-izgara">${ozellikler.map(([i, b, a]) => `<article class="ozellik">${ikon(i)}<h3>${b}</h3><p>${a}</p></article>`).join('')}</div>
   </section>
@@ -175,6 +236,7 @@ function ekranKarsilama() {
   const basla = () => git('bugun');
   $('#hadiBasla').onclick = basla;
   $('#hadiBasla2').onclick = basla;
+  GununKelimesi.bagla();
   Kurulum.bagla();
 }
 
@@ -271,11 +333,13 @@ function ekranHakkinda() {
   </section>
 
   <section class="panel">
-    <h2>Geliştiriciden</h2>
-    <p>İngilizce, uzun yıllardır hem eğitim hem de iş hayatımın ayrılmaz bir parçası. Bu dili öğrenmek için yıllarca eğitim aldım, pek çok sınava girdim; bugün de işimde ve günlük çalışmalarımda kullanmaya devam ediyorum. Bu süreç bana, kalıcı öğrenmenin ancak düzenli ve sabırlı bir çalışmayla mümkün olduğunu öğretti.</p>
-    <p>Bugün İngilizce öğrenmek isteyenler için sayısız kaynak ve platform var. Ancak bunların önemli bir kısmı ya ücretli, ya reklamlarla dolu ya da kullanıcının gerçek ihtiyacını karşılamaktan uzak.
-      AnadilimGibi'yi geliştirirken kendimi kullanıcının yerine koydum ve yıllar içinde “keşke böyle olsaydı” dediğim her şeyi bir araya getirmeye çalıştım. Ortaya çıkan uygulama ücretsizdir, reklam içermez ve İngilizce öğrenmeye katkı sağlamaktan başka hiçbir amaç taşımaz.</p>
-    <p>Edindiğim birikimin başkalarına da faydalı olması benim için büyük bir memnuniyet. Uygulamadan yararlanan herkese iyi çalışmalar dilerim; bir teşekkür, benim için fazlasıyla yeterlidir. <span class="hk-imza-ad">— ${U.yazar}</span></p>
+    <h2>Geliştiriciden not</h2>
+    <p>Bir dili gerçekten öğrenebilmek için o dile mümkün olduğunca fazla maruz kalmak, öğrendiklerini tekrar etmek ve günlük hayatın bir parçası hâline getirmek gerekir. Kısa sürede sonuç almayı beklemek yerine düzenli, sabırlı ve kararlı bir şekilde çalışmak, kalıcı öğrenmenin temelidir.</p>
+    <p>Günümüzde İngilizce öğrenmek isteyenler için sayısız kaynak ve platform bulunuyor. Ancak bu kaynakların bir kısmı ücretli, bir kısmı reklamlarla dolu, bir kısmı da öğrenen kişinin gerçek ihtiyaçlarına yeterince karşılık vermiyor. İnternette alanında başarılı eğitmenlerin ücretsiz ders videolarına ulaşmak mümkün olsa da bu kaynaklar genellikle dağınık durumdalar.</p>
+    <p>AnadilimGibi'yi geliştirirken ihtiyaç duyduğum, eksikliğini hissettiğim ve yıllar boyunca “Keşke böyle bir imkân olsaydı.” dediğim özellikleri tek bir platformda bir araya getirmeye çalıştım. AnadilimGibi tamamen ücretsizdir, reklam içermez ve herhangi bir ticari beklenti taşımaz. Tek amacı, İngilizcesini geliştirmek isteyenlere faydalı, erişilebilir ve keyifli bir çalışma ortamı sunmaktır.</p>
+    <p>Yıllar içinde edindiğim bilgi ve deneyimin başkalarının öğrenme yolculuğuna katkı sağlaması benim için mutluluk verici. Uygulamayı kullanan, geliştirilmesine katkıda bulunan ve başkalarına tavsiye eden herkese gönülden teşekkür ederim.</p>
+    <p>Umarım AnadilimGibi, İngilizceyi daha iyi öğrenmek isteyen herkesin yolculuğunda küçük de olsa kalıcı bir iz bırakır.</p>
+    <p>Herkese iyi çalışmalar ve keyifli öğrenmeler dilerim. <span class="hk-imza-ad">— ${U.yazar}</span></p>
     <div class="iletisim">
       <div><b>Her türlü geri bildirim beni mutlu eder</b>
         <span class="soluk">Görüşünü, önerini ya da fark ettiğin bir hatayı paylaşırsan uygulamayı birlikte daha da iyi hâle getirebiliriz.${U.eposta ? ` E-posta: ${U.eposta}` : ''}</span></div>

@@ -43,11 +43,11 @@ const Istat = (() => {
 })();
 
 /* ---------- Grafik yardımcıları: tek seri, ince çubuk, üzerine gelince değer ---------- */
-function cubukGrafik(veri, { yukseklik = 150, etiketAralik = 1, birim = '' } = {}) {
-  // veri: [{etiket, deger, ipucu}]
+function cubukGrafik(veri, { yukseklik = 150, etiketAralik = 1, birim = '', ustSinir = 0 } = {}) {
+  // veri: [{etiket, deger, ipucu}]; ustSinir: eksenin sabit üst değeri (ör. yüzde için 100)
   const max = Math.max(1, ...veri.map(x => x.deger));
   const adim = Math.pow(10, Math.floor(Math.log10(max)));
-  const ust = Math.ceil(max / adim) * adim;
+  const ust = ustSinir || Math.ceil(max / adim) * adim;
   return `<div class="grafik" style="--y:${yukseklik}px">
     <div class="g-eksen"><span>${ust.toLocaleString('tr-TR')}${birim}</span><span>${Math.round(ust / 2).toLocaleString('tr-TR')}</span><span>0</span></div>
     <div class="g-alan">
@@ -74,6 +74,68 @@ function cubukGrafik(veri, { yukseklik = 150, etiketAralik = 1, birim = '' } = {
   document.addEventListener('mouseover', e => { const el = e.target.closest('[data-ipucu]'); el ? goster(el) : gizle(); });
   document.addEventListener('focusin', e => { const el = e.target.closest('[data-ipucu]'); el ? goster(el) : gizle(); });
   window.addEventListener('scroll', gizle, { passive: true });
+})();
+
+/* ---------- Öğrenme takvimi: hangi gün çalışıldı, kaç yeni kelime, tekrarlar bitti mi ---------- */
+const Takvim = (() => {
+  let ay = null; // 'YYYY-MM'
+  const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+  function plan() { // ileri tarihlerdeki tekrar sayıları
+    const m = {};
+    for (const [id, w] of Object.entries(P.w)) if (KID.has(id) && !w.seref) for (const v of Object.values(w.m)) if (v.d !== MEZUN) m[v.d] = (m[v.d] || 0) + 1;
+    return m;
+  }
+  function html() {
+    const t = bugun();
+    ay ||= t.slice(0, 7);
+    const [y, mo] = ay.split('-').map(Number);
+    const ilk = `${ay}-01`, gunSayisi = new Date(y, mo, 0).getDate();
+    const bosluk = (new Date(y, mo - 1, 1).getDay() + 6) % 7; // pazartesiden başlar
+    const pl = plan();
+    let calisilan = 0, yeni = 0, cevap = 0, tamam = 0;
+    const hucreler = [];
+    for (let i = 0; i < bosluk; i++) hucreler.push('<div class="tk-gun bos"></div>');
+    for (let n = 1; n <= gunSayisi; n++) {
+      const d = gunEkle(ilk, n - 1), g = P.gun[d] || {}, r = g.r || 0, yk = g.n || 0;
+      const tarih = new Date(d + 'T12:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+      let s = 0, ipucu, isaret = '';
+      if (d > t) {
+        const p = pl[d] || 0;
+        ipucu = `${tarih}: ${p ? `${p} tekrar alıştırması planlı` : 'planlı tekrar yok'}`;
+        if (p) isaret = `<small class="tk-plan">${p}</small>`;
+      } else {
+        if (r || yk) { calisilan++; yeni += yk; cevap += r; }
+        s = !r && !yk ? 0 : r < 15 ? 1 : r < 40 ? 2 : r < 80 ? 3 : 4;
+        const bitti = r > 0 && g.kalan === 0, kaldi = r > 0 && g.kalan > 0;
+        if (bitti) tamam++;
+        ipucu = !r && !yk ? `${tarih}: çalışılmadı`
+          : `${tarih}: ${r} cevap${r ? `, %${Math.round(100 * (g.ok || 0) / r)} doğru` : ''}${yk ? `, ${yk} yeni kelime` : ''}${bitti ? ' · tekrarlar tamamlandı' : kaldi ? ` · ${g.kalan} tekrar kaldı` : ''}`;
+        isaret = (yk ? `<small class="tk-yeni">+${yk}</small>` : '') + (bitti ? '<i class="tk-tamam" aria-hidden="true">✓</i>' : kaldi ? '<i class="tk-kaldi" aria-hidden="true"></i>' : '');
+      }
+      hucreler.push(`<div class="tk-gun s${s}${d === t ? ' bugun' : ''}${d > t ? ' gelecek' : ''}" data-ipucu="${esc(ipucu)}" tabindex="0"><span>${n}</span>${isaret}</div>`);
+    }
+    const ozet = calisilan
+      ? `${AYLAR[mo - 1]} ayında <b>${calisilan} gün</b> çalıştın, <b>${yeni}</b> yeni kelimeyle tanıştın ve <b>${cevap.toLocaleString('tr-TR')}</b> cevap verdin.${tamam ? ` <b>${tamam} gün</b> tekrarlarının tamamını bitirdin.` : ''}`
+      : `${AYLAR[mo - 1]} ayında henüz çalışma kaydın yok.`;
+    return `<div class="tk-ust">
+        <button class="btn kucuk-btn" data-tk="-1" aria-label="Önceki ay">‹</button>
+        <b>${AYLAR[mo - 1]} ${y}</b>
+        <button class="btn kucuk-btn" data-tk="1" aria-label="Sonraki ay">›</button>
+      </div>
+      <div class="tk-izgara">${['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'].map(x => `<div class="tk-baslik">${x}</div>`).join('')}${hucreler.join('')}</div>
+      <p class="tk-ozet">${ozet}</p>
+      <div class="tk-aciklama"><span><i class="tk-ornek s1"></i><i class="tk-ornek s2"></i><i class="tk-ornek s4"></i> daha koyu: daha çok cevap</span>
+        <span><small class="tk-yeni">+5</small> yeni kelime</span><span><i class="tk-tamam">✓</i> tekrarlar tamamlandı</span>
+        <span><i class="tk-kaldi"></i> tekrar kaldı</span><span><small class="tk-plan">12</small> planlı tekrar</span></div>`;
+  }
+  function bagla(kap) {
+    kap.querySelectorAll('[data-tk]').forEach(b => b.onclick = () => {
+      const [y, m] = ay.split('-').map(Number), x = new Date(y, m - 1 + +b.dataset.tk, 1);
+      ay = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}`;
+      kap.innerHTML = html(); bagla(kap);
+    });
+  }
+  return { html, bagla };
 })();
 
 function ekranIstatistik() {
@@ -120,6 +182,46 @@ function ekranIstatistik() {
   // Yanlış yapılan kelime, ardından üst üste ZOR_CIKIS kez doğru cevaplanınca listeden çıkar
   const zorlar = Object.entries(P.w).filter(([id, w]) => KID.has(id) && w.x > 0 && (w.ds || 0) < ZOR_CIKIS).sort((a, b) => b[1].x - a[1].x).slice(0, 10);
 
+  // Gelişim: son 7 gün ile önceki 7 günün karşılaştırması
+  const donem = bas => {
+    const o = { r: 0, ok: 0, n: 0, gun: 0 };
+    for (let i = 0; i < 7; i++) { const g = P.gun[gunEkle(t, -bas - i)]; if (!g) continue; o.r += g.r || 0; o.ok += g.ok || 0; o.n += g.n || 0; if (g.r || g.n) o.gun++; }
+    o.oran = o.r ? Math.round(100 * o.ok / o.r) : null;
+    return o;
+  };
+  const bu = donem(0), once = donem(7);
+  const fark = (a, b, birim = '') => {
+    if (a == null || b == null) return '<small class="fark">–</small>';
+    const f = a - b;
+    return `<small class="fark ${f > 0 ? 'artis' : f < 0 ? 'dusus' : ''}">${f > 0 ? '▲' : f < 0 ? '▼' : '='} ${f ? Math.abs(f) + birim : 'aynı'} <span class="soluk">önceki 7 güne göre</span></small>`;
+  };
+  const karsi = (deger, ad, f) => `<div class="stat"><b>${deger}</b><span>${ad}</span>${f}</div>`;
+  let yorum;
+  if (!bu.r && !bu.n) yorum = 'Son 7 günde çalışma kaydın yok. Kısa bir oturumla seriyi yeniden başlatabilirsin.';
+  else {
+    const p = [];
+    if (once.r) p.push(bu.r >= once.r ? `önceki haftaya göre <b>${bu.r - once.r} daha fazla</b> cevap verdin` : `önceki haftadan <b>${once.r - bu.r} daha az</b> cevap verdin`);
+    if (bu.oran != null && once.oran != null) p.push(bu.oran > once.oran ? `doğruluğun <b>${bu.oran - once.oran} puan arttı</b>` : bu.oran < once.oran ? `doğruluğun ${once.oran - bu.oran} puan düştü; zorlandığın kelimelere göz atmak iyi gelebilir` : 'doğruluğun aynı kaldı');
+    yorum = p.length ? `Son 7 günde ${p.join(', ')}.` : `Son 7 günde ${bu.r} cevap verdin ve ${bu.n} yeni kelimeyle tanıştın. Gelişimini görmek için önümüzdeki hafta da devam et.`;
+  }
+  // Haftalık doğruluk (son 12 hafta)
+  const dogrulukHafta = [];
+  for (let i = 11; i >= 0; i--) {
+    let r = 0, ok = 0; const bas = gunEkle(t, -7 * i - 6);
+    for (let j = 0; j < 7; j++) { const g = P.gun[gunEkle(bas, j)]; r += g?.r || 0; ok += g?.ok || 0; }
+    const o = r ? Math.round(100 * ok / r) : 0;
+    dogrulukHafta.push({ etiket: tarihKisa(bas), deger: o, ipucu: `${tarihKisa(bas)} haftası: ${r ? `%${o} doğru (${r} cevap)` : 'çalışma yok'}` });
+  }
+  // Kelime dağarcığının büyümesi: son 30 günde toplam tanışılan kelime
+  const tanisGunleri = Object.entries(P.w).filter(([id]) => KID.has(id)).map(([, w]) => w.i).sort();
+  const birikim = [];
+  for (let i = 29, j = 0; i >= 0; i--) {
+    const d = gunEkle(t, -i);
+    while (j < tanisGunleri.length && tanisGunleri[j] <= d) j++;
+    birikim.push({ etiket: new Date(d + 'T12:00').getDate(), deger: j, ipucu: `${tarihKisa(d)}: toplam ${j} kelime` });
+  }
+  const aciklama = m => `<p class="grafik-aciklama">${m}</p>`;
+
   const kart = (deger, ad, alt = '') => `<div class="stat"><b>${deger}</b><span>${ad}</span>${alt ? `<small>${alt}</small>` : ''}</div>`;
   const metre = (ad, m) => `<div class="metre"><span>${ad}</span><div class="metre-cubuk" data-ipucu="${ad}: ${m.ok}/${m.n} doğru"><i style="width:${m.n ? 100 * m.ok / m.n : 0}%"></i></div><b>${yuzde(m.ok, m.n)}</b></div>`;
 
@@ -132,6 +234,35 @@ function ekranIstatistik() {
       ${kart(sayi(S.pekisenToplam), 'pekişen kelime', `${sayi(S.ustaToplam)} ustalaşan`)}
       ${kart(sayi(S.say.seref), 'Şeref Tribünü\'nde', 'bir yıl sonra da hatırlanan')}
     </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gelişimin</h2>
+    <p class="gelisim-yorum">${yorum}</p>
+    <div class="stat-izgara">
+      ${karsi(sayi(bu.r), 'son 7 günde cevap', fark(bu.r, once.r))}
+      ${karsi(bu.oran == null ? '–' : '%' + bu.oran, 'doğruluk', fark(bu.oran, once.r ? once.oran : null, ' puan'))}
+      ${karsi(sayi(bu.n), 'yeni kelime', fark(bu.n, once.n))}
+      ${karsi(`${bu.gun}/7`, 'çalışılan gün', fark(bu.gun, once.gun, ' gün'))}
+    </div>
+    <div class="iki-grafik">
+      <div>
+        <h3>Haftalık doğruluk</h3>
+        ${cubukGrafik(dogrulukHafta, { etiketAralik: 3, yukseklik: 120, birim: '%', ustSinir: 100 })}
+        ${aciklama('Her çubuk, bir haftada verdiğin cevapların yüzde kaçının doğru olduğunu gösterir. Çubuklar yükseliyorsa kelimeleri daha iyi hatırlıyorsun.')}
+      </div>
+      <div>
+        <h3>Kelime dağarcığın</h3>
+        ${cubukGrafik(birikim, { etiketAralik: 5, yukseklik: 120 })}
+        ${aciklama('Son 30 günde tanıştığın toplam kelime sayısı. Her gün biraz yükselmesi, düzenli ilerlediğin anlamına gelir.')}
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Öğrenme takvimi</h2>
+    <p class="soluk kucuk">Hangi gün çalıştığını, kaç yeni kelimeyle tanıştığını ve o günün tekrarlarını bitirip bitirmediğini gösterir. İleri tarihlerde planlı tekrar sayısı görünür. Ayrıntı için bir güne dokun.</p>
+    <div id="takvim">${Takvim.html()}</div>
   </section>
 
   <section class="iki">
@@ -175,20 +306,24 @@ function ekranIstatistik() {
   <section class="panel">
     <h2>Son 30 gün — günlük cevap sayısı</h2>
     ${cubukGrafik(son30, { etiketAralik: 3 })}
+    ${aciklama('Her çubuk bir günde verdiğin cevap sayısıdır; boşluklar çalışmadığın günlerdir. Birbirine yakın boyda, kesintisiz çubuklar en sağlıklı tempodur: haftada bir uzun oturumdan çok, her gün kısa çalışmak kalıcıdır.')}
   </section>
   <section class="iki">
     <div class="panel">
       <h2>Haftalık yeni kelime</h2>
       ${cubukGrafik(hafta, { etiketAralik: 3, yukseklik: 120 })}
+      ${aciklama('Her hafta kaç yeni kelimeyle tanıştığın. Tekrarlar birikince uygulama yeni kelimeleri kendiliğinden azaltır; bu yüzden bazı haftalar daha kısa olabilir.')}
     </div>
     <div class="panel">
       <h2>Alıştırmaların tekrar aralıkları</h2>
       ${cubukGrafik(kutular, { yukseklik: 120 })}
+      ${aciklama('Alıştırmalarının şu an hangi tekrar aralığında olduğu. Çubuklar sağa, yani uzun aralıklara kaydıkça kelimeler kalıcı hafızana yerleşiyor demektir.')}
     </div>
   </section>
   <section class="panel">
     <h2>Önümüzdeki 30 gün — tekrar yükü</h2>
     ${cubukGrafik(yuk, { etiketAralik: 3, yukseklik: 120 })}
+    ${aciklama('Hangi gün kaç tekrarın seni beklediği. Yüksek bir gün yaklaşıyorsa Ayarlar\'dan günlük yeni kelime sayısını biraz azaltmak yükü dengeler.')}
   </section>
   <section class="panel">
     <h2>En çok zorlandığın kelimeler</h2>
@@ -197,4 +332,5 @@ function ekranIstatistik() {
       : '<p class="soluk">Şu an zorlandığın bir kelime yok.</p>'}
   </section>`;
   document.querySelectorAll('[data-detay]').forEach(b => b.onclick = () => kelimeDetay(b.dataset.detay));
+  Takvim.bagla($('#takvim'));
 }

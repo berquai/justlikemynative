@@ -208,6 +208,9 @@ h3 { font-size: 1rem; margin: 1.2rem 0 .3rem; }
 .hk-logo { border-radius: 18px; flex: none; box-shadow: var(--golge); }
 .hk-giris { font-size: 1.05rem; }
 .hk-imza { padding: .8rem 1rem; border-left: 4px solid var(--vurgu); background: var(--vurgu-acik); border-radius: 0 10px 10px 0; }
+.hk-imza h2 { margin-top: 0; font-size: 1.1rem; }
+.hk-imza p:last-child { margin-bottom: 0; }
+.hk-imza-ad { display: block; margin-top: .6rem; font-style: italic; color: var(--soluk); }
 .hakkinda a, .alt a { color: var(--vurgu); }
 .hk-liste { padding-left: 1.2rem; margin: 0; } .hk-liste li { margin-bottom: .45rem; }
 .hk-bilgi { display: grid; grid-template-columns: auto 1fr; gap: .3rem 1rem; margin: 0 0 1rem; }

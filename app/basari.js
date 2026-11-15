@@ -38,7 +38,7 @@ const Basari = (() => {
       kademe: [[1, 'Erkenci kuş'], [5, 'Gün doğumu'], [15, 'Sabah sporcusu'], [30, 'Şafak bekçisi'], [60, 'Horozla yarışan'], [100, 'Güneşi uyandıran']] },
     { id: 'haftasonu', ikon: '🎒', ad: 'Hafta sonu savaşçısı', acik: n => `${n} hafta sonunun iki gününde de çalış`, deger: S => S.haftaSonu,
       kademe: [[1, 'Hafta sonu savaşçısı'], [4, 'Bir ayın hafta sonları'], [10, 'Tatil bilmez'], [26, 'Yarım yılın hafta sonları'], [52, 'Bir yılın hafta sonları']] },
-    { id: 'parcacik', ikon: '🧲', ad: 'Parçacık Tamamlama', acik: n => `Parçacık Tamamlama oyununda ${n} doğru yap`, deger: () => P.oyun.parcacik || 0,
+    { id: 'parcacik', ikon: '🧲', ad: 'Parçacık tamamlama', acik: n => `Parçacık tamamlama oyununda ${n} doğru yap`, deger: () => P.oyun.parcacik || 0,
       kademe: [[10, 'Parçacık avcısı'], [25, 'Fiil ustası'], [50, 'Phrasal çözücü'], [100, 'Yüz parçacık'], [250, 'Phrasal ustası'], [500, 'Phrasal efsanesi']] },
     // Etüt Köşesi: birikimli süre ve etüt alışkanlıkları
     { id: 'etut', ikon: '⏳', ad: 'Etüt Köşesi', acik: n => `Toplam ${n} saat etüt yap`, deger: () => etutIstat().saat,

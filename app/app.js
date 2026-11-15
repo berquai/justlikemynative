@@ -15,6 +15,7 @@ const LS = 'kelimeBulmaca.v1';
 // kutu -> sonraki tekrar (gün). Son kutudaki (360 gün) tekrar da doğru bilinirse mod "mezun" olur.
 const ARALIK = [0, 1, 3, 7, 14, 30, 60, 180, 360];
 const SON_KUTU = ARALIK.length - 1;
+const ZOR_CIKIS = 3; // zorlandığın kelimeler listesinden çıkmak için üst üste doğru sayısı
 const MEZUN = '9999-12-31';
 const MODLAR = { r: 'Anlama', c: 'Bağlam', p: 'Üretme' };
 const USTA = 5; // bu kutuya ulaşan mod "pekişmiş" sayılır (14 günlük aralığı geçmiş)
@@ -108,13 +109,14 @@ function puanla(id, mod, dogru) {
   if (saat >= 5 && saat < 8) g.sabah = 1;
   if (dogru) {
     g.ok++; gm.ok++;
+    if (w.x) w.ds = (w.ds || 0) + 1; // son yanlıştan beri üst üste doğru (zorlandığın kelimeler listesi için)
     if (s.d <= t) {
       if (s.b >= SON_KUTU) { s.d = MEZUN; s.mezun = t; }     // 360 günlük tekrarı da geçti
       else { s.b++; s.d = gunEkle(t, ARALIK[s.b]); }
     }
     if (!w.seref && Object.values(w.m).every(v => v.d === MEZUN)) { w.seref = t; g.seref = (g.seref || 0) + 1; }
   } else {
-    s.b = 0; s.d = t; delete s.mezun; w.x = (w.x || 0) + 1;
+    s.b = 0; s.d = t; delete s.mezun; w.x = (w.x || 0) + 1; w.ds = 0;
   }
   kaydet();
   Basari.kontrol();
@@ -534,31 +536,50 @@ function coktanSecmeli(it, k, tur) {
   klavye = e => { const n = +e.key; if (n >= 1 && n <= secenekler.length) sec(n - 1); };
 }
 
-function ipucuDesen(w, ilkHarf) {
+// Harf göster: kelimenin ilk `acik` harfini açar, kalanları alt çizgi bırakır
+// (basHarfler: çok kelimeli ifadelerde her kelimenin ilk harfi de açık)
+function acikDesen(w, acik, basHarfler) {
+  let n = 0;
   return w.replace(/\(.*?\)/g, '').trim().split(/\s+/).map(p =>
-    [...p].map((ch, i) => /[A-Za-z]/.test(ch) ? (ilkHarf && i === 0 ? ch : '_') : ch).join(' ')).join('   ');
+    [...p].map((ch, i) => /[A-Za-z]/.test(ch) ? (n++ < acik || (basHarfler && i === 0) ? ch : '_') : ch).join(' ')).join('   ');
 }
 
 function yazma(it, k, ipucuVar) {
   const ip = it.m === 'c' ? ipucuSec(k, 'c') : ipucuSec(k, 'p', Math.random() < 0.6 ? 'tr' : 'd');
   const ekler = ip.yuzey ? [ip.yuzey] : [];
+  const hedef = ip.yuzey || k.w;
+  const harfSay = (hedef.replace(/\(.*?\)/g, '').match(/[A-Za-z]/g) || []).length;
+  let acik = ipucuVar ? 1 : 0;
+  // Boşluklu cümlede Türkçe anlam da küçük bir ipucu olarak verilir
+  const trNot = ip.tip === 'c' ? `<p class="soluk orta kucuk">Türkçesi: ${esc(k.tr)}</p>` : '';
   ana().innerHTML = `${ilerlemeCubugu()}<section class="sahne">
     <p class="ust-baslik">${ip.etiket} — İngilizcesini yaz</p>
     <div class="soru-ipucu ${ip.tip === 'c' ? 'cumle' : ''}">${ip.html}</div>
-    ${ipucuVar ? `<p class="desen">${esc(ipucuDesen(ip.yuzey || k.w, true))}</p>` : `<p class="desen soluk">${esc(Metin.desen(k.w))} harf</p>`}
+    ${trNot}
+    <p class="desen" id="desen"></p>
     <form id="yazForm" class="yaz" autocomplete="off">
       <input id="cevap" spellcheck="false" autocapitalize="off" placeholder="cevabını yaz…" aria-label="Cevap">
       <button class="ana-btn">Kontrol</button>
+      <button type="button" class="btn" id="harfGoster" title="Her dokunuşta bir harf açar">Harf göster</button>
       <button type="button" class="btn" id="bilmiyorum">Bilmiyorum</button>
     </form><div id="geri"></div></section>`;
   ustBagla();
+  const desenYaz = () => {
+    const d = $('#desen');
+    if (acik) { d.className = 'desen'; d.textContent = acikDesen(hedef, acik, ipucuVar); }
+    else { d.className = 'desen soluk'; d.textContent = `${Metin.desen(k.w)} harf`; }
+    // Son harf hiçbir zaman açılmaz; cevabı yine sen yazarsın
+    if (acik >= harfSay - 1) $('#harfGoster').disabled = true;
+  };
+  desenYaz();
   const inp = $('#cevap'); inp.focus();
+  $('#harfGoster').onclick = () => { if (acik < harfSay - 1) { acik++; desenYaz(); } inp.focus(); };
   let bitti = false;
   const bitir = (girdi) => {
     if (bitti) return; bitti = true;
     const s = girdi == null ? 'yanlis' : Metin.kontrol(girdi, k.w, ekler);
     const dogru = s !== 'yanlis';
-    inp.disabled = true; inp.classList.add(dogru ? 'dogru' : 'yanlis');
+    inp.disabled = true; inp.classList.add(dogru ? 'dogru' : 'yanlis'); $('#harfGoster').disabled = true;
     cevapla(it, dogru, girdi == null ? '(boş bıraktın)' : girdi.trim(), k.w);
     const not = s === 'yakin' ? `<span class="not">Küçük bir yazım hatası vardı, doğru saydım.</span>` : '';
     $('#geri').innerHTML = sonucHtml(k, dogru, not);
@@ -922,7 +943,7 @@ function ekranOyun(tur) {
   ana().innerHTML = `<section class="panel">
     <h1>Oyunlar</h1>
     <p class="soluk">Serbest oyunlar tekrar takvimini etkilemez; istediğin kadar oyna.${havuzAz ? ' Henüz az kelimeyle tanıştığın için tüm listeden soruluyor.' : ' Tanıştığın kelimelerden soruluyor.'}</p>
-    <div class="butonlar">${[['adam', 'Çiçek büyüt'], ['harf', 'Karışık harfler'], ['esles', 'Kelime eşleştirme'], ['parcacik', 'Parçacık Tamamlama']].map(([k, ad]) =>
+    <div class="butonlar orta">${[['adam', 'Çiçek büyüt'], ['harf', 'Karışık harfler'], ['esles', 'Kelime eşleştirme'], ['parcacik', 'Parçacık tamamlama']].map(([k, ad]) =>
       `<button class="${(tur || 'adam') === k ? 'ana-btn' : 'btn'}" data-oyun="${k}">${ad}</button>`).join('')}</div></section>
     <section class="sahne ${tur === 'esles' ? 'genis' : ''}" id="oyunAlani"></section>`;
   document.querySelectorAll('[data-oyun]').forEach(b => b.onclick = () => ekranOyun(b.dataset.oyun));

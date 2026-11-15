@@ -117,7 +117,8 @@ function ekranIstatistik() {
   const hiz = son14.reduce((a, b) => a + b, 0) / 14 || P.ayar.gunluk;
   const kalan = S.say.yeni;
   const bitis = hiz > 0 ? gunEkle(t, Math.ceil(kalan / hiz)) : null;
-  const zorlar = Object.entries(P.w).filter(([id, w]) => KID.has(id) && w.x > 0).sort((a, b) => b[1].x - a[1].x).slice(0, 10);
+  // Yanlış yapılan kelime, ardından üst üste ZOR_CIKIS kez doğru cevaplanınca listeden çıkar
+  const zorlar = Object.entries(P.w).filter(([id, w]) => KID.has(id) && w.x > 0 && (w.ds || 0) < ZOR_CIKIS).sort((a, b) => b[1].x - a[1].x).slice(0, 10);
 
   const kart = (deger, ad, alt = '') => `<div class="stat"><b>${deger}</b><span>${ad}</span>${alt ? `<small>${alt}</small>` : ''}</div>`;
   const metre = (ad, m) => `<div class="metre"><span>${ad}</span><div class="metre-cubuk" data-ipucu="${ad}: ${m.ok}/${m.n} doğru"><i style="width:${m.n ? 100 * m.ok / m.n : 0}%"></i></div><b>${yuzde(m.ok, m.n)}</b></div>`;
@@ -191,8 +192,9 @@ function ekranIstatistik() {
   </section>
   <section class="panel">
     <h2>En çok zorlandığın kelimeler</h2>
-    ${zorlar.length ? `<ol class="zor-liste">${zorlar.map(([id, w]) => `<li><button class="link" data-detay="${esc(id)}">${esc(KID.get(id).w)}</button> <span class="soluk">— ${esc(KID.get(id).tr)}</span> <span class="etiket">${w.x} yanlış</span></li>`).join('')}</ol>`
-      : '<p class="soluk">Henüz yanlış cevap yok.</p>'}
+    <p class="soluk kucuk">Yanlış yaptığın kelimeyi sonra üst üste ${ZOR_CIKIS} kez doğru cevaplarsan artık zorlanmadığın kabul edilir ve listeden çıkar. Yeniden yanlış yaparsan geri gelir.</p>
+    ${zorlar.length ? `<ol class="zor-liste">${zorlar.map(([id, w]) => `<li><button class="link" data-detay="${esc(id)}">${esc(KID.get(id).w)}</button> <span class="soluk">— ${esc(KID.get(id).tr)}</span> <span class="etiket">${w.x} yanlış</span>${w.ds ? ` <span class="etiket vurgu">${w.ds}/${ZOR_CIKIS} doğru</span>` : ''}</li>`).join('')}</ol>`
+      : '<p class="soluk">Şu an zorlandığın bir kelime yok.</p>'}
   </section>`;
   document.querySelectorAll('[data-detay]').forEach(b => b.onclick = () => kelimeDetay(b.dataset.detay));
 }

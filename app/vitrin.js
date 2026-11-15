@@ -4,8 +4,10 @@
 
 // Karşılama ekranı uygulamanın ana sayfasıdır: her açılışta ve logoya dokununca gösterilir.
 
-const SOZLUK_ACIKLAMA = 'Bu sözlük, Berkay Çelik tarafından kendi çalışmaları sırasında derlenmiştir. Telaffuzlar ve örnek cümleler yapay zekâ desteğiyle gözden geçirilip tamamlanmıştır. Gerçek bir sözlük olma iddiası yoktur: A\'dan Z\'ye bütün kelimeleri ya da bir kelimenin bütün anlamlarını içermez; mümkün olduğunca en yaygın kullanılan anlamlar tercih edilmiştir. İçerik hiçbir garanti olmaksızın sunulur. Sözlüğü dilediğin gibi düzenleyebilir, kelime ekleyip çıkarabilirsin.';
+const SOZLUK_ACIKLAMA = 'Uygulamada kullanılan sözlük, <b>Berkay Çelik</b> tarafından derlenmiştir. Uzun yıllar süren çalışmaların ve harcanan emeğin ürünüdür. Telaffuzlar ve örnek cümleler yapay zekâ desteğiyle gözden geçirilip eksiklikler tamamlanmış ve tespit edilen bazı hatalar düzeltilmiştir. Gerçek bir sözlük olma iddiası yoktur: A\'dan Z\'ye bütün kelimeleri ya da bir kelimenin bütün anlamlarını içermez; mümkün olduğunca en yaygın kullanılan ve sınavlarda en çok tercih edilen anlamlara öncelik verilmiştir. İçerik hiçbir garanti olmaksızın sunulur. Sözlüğü dilediğin gibi düzenleyebilir, kelime ekleyip çıkarabilirsin.';
 const KONUM_METNI = 'İngilizcesini geliştirmek ve kelime bilgisini kalıcı olarak artırmak isteyenler için tasarlandı. Akademik ağırlıklı kelime listesi sayesinde YDS ve YÖKDİL\'e hazırlanırken de güçlü bir avantaj sağlar.';
+// Oyun adları her yerde cümle düzeninde yazılır (yalnızca ilk harf büyük)
+const PARCACIK_AD = 'Parçacık tamamlama';
 const SEREF_METNI = 'Üç alıştırma türünde de 360 günlük tekrarını doğru cevapladığın kelime Şeref Tribünü\'ne çıkar ve artık sorulmaz.';
 
 // Basit çizgi simgeler (24×24)
@@ -102,10 +104,10 @@ function ekranKarsilama() {
     ['takvim', 'Aralıklı tekrar', 'Her kelimeyi tam unutmak üzereyken yeniden sorar: 1, 3, 7, 14, 30, 60, 180 ve 360 gün sonra. Az çalışırsın, kalıcı öğrenirsin.'],
     ['uc', 'Üç yönlü çalışma', 'Anlamını tanır, cümlenin içinde bulur, sonra kendin yazarsın. Kelime yalnızca tanıdık gelmez, gerçekten senin olur.'],
     ...(typeof ETUT_HAZIR !== 'undefined' && ETUT_HAZIR ? [['saat', 'Etüt Köşesi', 'Günlük rutinden bağımsız, süreli ve sınırsız çalışma: karışık alıştırma, dikte ya da gölgeleme. Sonunda yanlışlarını ve doğrularını gösteren bir karne.']] : []),
-    ['kalem', 'Yazdır-Çöz', 'Çengel bulmaca, sözcük avı, boşluk doldurma… Kâğıda yazdır, kalemle çöz; sonuçlarını girince tekrar takvimin de güncellenir. Öğrenciler ve öğretmenler için sınıfta da kullanışlı.'],
-    ['yds', 'YDS ve YÖKDİL tarzı sorular', 'Kelime boşluğu, bağlaç ve edat seçimi, cümle tamamlama ve eşdizim soruları; beş seçenekli, özgün.'],
-    ['oyun', 'Oyunlar', 'Çiçek büyüt, karışık harfler ve kelime eşleştirme ile tekrar etmeyi eğlenceye dönüştür.'],
-    ['miknatis', 'Parçacık Tamamlama', 'Phrasal verb\'leri oyunla öğren: give up, give in, give away… Aynı fiilin farklı anlamlarını yan yana gör.'],
+    ['kalem', 'Yazdır-Çöz', 'Çengel bulmaca, sözcük avı, boşluk doldurma… Kâğıda yazdır, kalemle çöz; sonuçlarını girince tekrar takvimin de güncellenir. Sınıf etkinlikleri için de çok uygun!'],
+    ['yds', 'YDS ve YÖKDİL tarzı sorular', 'Kelime boşluğu, bağlaç ve edat seçimi, cümle tamamlama ve eşdizim (collocation) soruları; beş seçenekli, özgün.'],
+    ['oyun', 'Oyunlar', 'Çiçek büyüt, karışık harfler, kelime eşleştirme ve parçacık tamamlama (phrasal verb) ile tekrar etmeyi eğlenceye dönüştür.'],
+    ['miknatis', `${PARCACIK_AD} (phrasal verb)`, 'Phrasal verb\'leri oyunla öğren: give up, give in, give away… Aynı fiilin farklı anlamlarını yan yana gör.'],
     ['rozet', 'Başarılar ve rozetler', 'Taştan Efsane\'ye yedi seviyeli rozetler, seriler ve Şeref Tribünü emeğini görünür kılar.'],
     ['ses', 'Dinle, yaz, konuş', 'Kelimeleri ve cümleleri dinle; dikteyle yaz, gölgelemeyle tekrar et. Destekleyen tarayıcılarda söylediklerin de kontrol edilir.'],
     ['kitap', 'Düzenlenebilir sözlük', 'Kelime ekle, anlamı değiştir, kendi örneğini yaz. Sözlük senin çalışma defterine dönüşür.'],
@@ -168,7 +170,6 @@ function ekranKarsilama() {
 
   <section class="vitrin-bolum vitrin-son">
     <h2>Hazırsan başlayalım.</h2>
-    <p class="soluk">${SOZLUK_ACIKLAMA.split('. ')[0]}. <button class="link" data-git="hakkinda">Sözlük ve uygulama hakkında</button></p>
     <div class="butonlar orta"><button class="ana-btn buyuk-btn" id="hadiBasla2">Eğitime başla ${ikon('ok')}</button></div>
   </section>`;
   const basla = () => git('bugun');
@@ -189,7 +190,7 @@ function ekranKilavuz() {
       <p>Kelime ilerledikçe alıştırma zorlaşır: şıktan seçme → harf dizme → ipuçlu yazma → serbest yazma. Küçük yazım hataları hoş görülür.</p>`],
     ['takvim', 'Tekrar takvimi', `<p>Doğru cevapladığın alıştırma <b>1, 3, 7, 14, 30, 60, 180 ve 360</b> gün sonra yeniden sorulur; yanlış cevapladığın hemen başa döner. Üç yönde de 14 günlük aralığı geçen kelime “pekişti”, 180 günlüğü geçen “ustalaştı” sayılır.</p>
       <p>${SEREF_METNI}</p>`],
-    ...(etut ? [['saat', 'Etüt Köşesi', `<p>Günlük rutin bittiğinde ya da daha fazla çalışmak istediğinde <b>Etüt</b>'e geç. Süreyi (varsayılan 20 dakika) ve çalışma türünü seç; istediğin kadar oturum başlatabilirsin. Sayaç dakika dakika ilerler, son dakikada saniyeleri gösterir. Süre dolduğunda elindeki soruyu tamamlarsın, ardından <b>Tamamla</b> ya da <b>20 dakika daha</b> seçersin.</p>
+    ...(etut ? [['saat', 'Etüt Köşesi', `<p>Günlük rutin bittiğinde ya da daha fazla çalışmak istediğinde <b>Etüt</b>'e geç. Süreyi (varsayılan 20 dakika) ve çalışma türünü seç; istediğin kadar oturum başlatabilirsin. Sayaç dakika dakika ilerler, son dakikada saniyeleri gösterir. Süre dolduğunda elindeki soruyu tamamlarsın, ardından <b>Tamamla</b>'yı ya da süreyi uzatmayı seçersin (10 dakikalık etüt 10 dakika, daha uzun etütler 20 dakika uzar).</p>
       <ul><li><b>Karışık alıştırma:</b> Anlama, bağlam ve üretme soruları karışık gelir.</li>
       <li><b>Dikte:</b> Cümleyi dinler, duyduğunu yazarsın. Büyük/küçük harf ve noktalama hata sayılmaz; yanlış ya da eksik kelimeler işaretlenir. <b>Yavaş dinle</b> ile cümleyi ağır tempoda tekrar duyabilirsin.</li>
       <li><b>Gölgeleme:</b> Cümleyi dinler, aynı ritimle yüksek sesle tekrar edersin. Destekleyen tarayıcılarda söylediğin konuşma tanımayla kontrol edilir; desteklemeyenlerde kendini değerlendirirsin.</li></ul>
@@ -197,9 +198,9 @@ function ekranKilavuz() {
       <p class="konusma-not">🎤 Konuşma kontrolü Chrome'da en iyi sonucu verir; bazı tarayıcılar desteklemez. İlk kullanımda mikrofon izni istenir.</p>`]] : []),
     ['kalem', 'Yazdır-Çöz', `<p>Tanıştığın kelimelerden çengel bulmaca, sözcük avı, harf yerleştirme ya da boşluk doldurma sayfası hazırla; <b>Yazdır / PDF</b> ile çıktı al. Çözdükten sonra cevap anahtarına bakıp yanlışlarını işaretlersen tekrar takvimin de güncellenir.</p>
       <p>Bu bulmacalar öğrenciler ve öğretmenler için de çok faydalıdır: Her sayfanın ayrı bir cevap anahtarı olduğu için sınıf etkinliği, ödev ya da kısa bir kelime sınavı olarak kullanılabilir.</p>`],
-    ['yds', 'YDS ve YÖKDİL tarzı sorular', `<p>Sınavların biçimine benzeyen ama tamamen özgün, beş seçenekli sorular: <b>kelime boşluğu</b>, <b>bağlaç ve edat seçimi</b>, <b>cümle tamamlama</b> ve <b>eşdizim</b>. Günlük rutinin sonunda 5 soru gelir (Ayarlar'dan kapatabilirsin); daha fazlası için Etüt Köşesi'nde “YDS / YÖKDİL tarzı” türünü seç.</p>
-      <p>Sözlükte, Yazdır-Çöz'de ve Etüt'te kelimeleri <b>yaklaşık seviyeye</b> (A2–C2) ve <b>konuya</b> göre süzebilirsin. Kelime kartlarında sık kullanılan <b>eşdizimler</b> (make a decision, heavy rain gibi) ayrı bir satırda gösterilir.</p>`],
-    ['oyun', 'Oyunlar', `<p><b>Çiçek büyüt</b> (doğru harfleri buldukça saksıdaki fide büyür, kelime tamamlanınca çiçek açar), karışık harfler, kelime eşleştirme ve <b>Parçacık Tamamlama</b>. Parçacık Tamamlama'da fiil verilir, doğru parçacığı seçersin (give <b>up</b>, give <b>in</b>…); ardından aynı fiilin farklı parçacıklarla kazandığı anlamlar yan yana gösterilir. Oyunlar tekrar takvimini etkilemez; istediğin kadar oynayabilirsin.</p>`],
+    ['yds', 'YDS ve YÖKDİL tarzı sorular', `<p>Sınavların biçimine benzeyen ama tamamen özgün, beş seçenekli sorular: <b>kelime boşluğu</b>, <b>bağlaç ve edat seçimi</b>, <b>cümle tamamlama</b> ve <b>eşdizim (collocation)</b>. Günlük rutinin sonunda 5 soru gelir (Ayarlar'dan kapatabilirsin); daha fazlası için Etüt Köşesi'nde “YDS / YÖKDİL tarzı” türünü seç.</p>
+      <p>Sözlükte, Yazdır-Çöz'de ve Etüt'te kelimeleri <b>yaklaşık seviyeye</b> (A2–C2) ve <b>konuya</b> göre süzebilirsin. Kelime kartlarında sık kullanılan <b>eşdizimler</b> (collocation; make a decision, heavy rain gibi) ayrı bir satırda gösterilir.</p>`],
+    ['oyun', 'Oyunlar', `<p><b>Çiçek büyüt</b> (doğru harfleri buldukça saksıdaki fide büyür, kelime tamamlanınca çiçek açar), <b>Karışık harfler</b>, <b>Kelime eşleştirme</b> ve <b>${PARCACIK_AD}</b> (phrasal verb). ${PARCACIK_AD} oyununda fiil verilir, doğru parçacığı seçersin (give <b>up</b>, give <b>in</b>…); ardından aynı fiilin farklı parçacıklarla kazandığı anlamlar yan yana gösterilir. Oyunlar tekrar takvimini etkilemez; istediğin kadar oynayabilirsin.</p>`],
     ['kitap', 'Sözlüğü kişiselleştir', `<p><b>Sözlük</b>'te bütün kelimeleri arayabilir, harfe ve duruma göre süzebilirsin. Yeni kelime ekleyebilir, anlam ya da örnek cümle değiştirebilir, istemediğin kelimeyi silebilirsin (silinenler geri yüklenebilir). Öğrendiğin bir kelimenin içeriği değişirse yeniden öğrenilecekler arasına alınır.</p>
       <p class="soluk kucuk">${SOZLUK_ACIKLAMA}</p>`],
     ['bulut', 'Cihazlar arası eşitleme', `<p>İlerlemen önce bu cihazdaki tarayıcıda saklanır. <b>Ayarlar › Telefon ve bilgisayarlar arasında ilerleme</b> bölümünden Google hesabınla giriş yaparsan ilerlemen Google Drive'ındaki küçük bir dosyaya kaydedilir; diğer cihazlarında da aynı hesapla giriş yaparak kaldığın yerden devam edersin. Eşitleme kullanmıyorsan ara sıra <b>Yedeği indir</b>.</p>`],
@@ -248,33 +249,33 @@ function ekranHakkinda() {
         <p class="soluk">Sürüm ${U.surum} · ${U.yil} · Tamamen ücretsiz</p>
       </div>
     </div>
-    <p class="hk-giris">AnadilimGibi, İngilizcesini geliştirmek isteyenlerin kelime bilgisini kalıcı olarak artırmak için geliştirilmiş, tamamen ücretsiz bir çalışma uygulamasıdır.
-      Aralıklı tekrar sistemini; alıştırmalar, yazdırılabilir bulmacalar ve oyunlarla birleştirir.</p>
-    <p class="hk-imza">${KONUM_METNI}</p>
-    <div class="butonlar"><button class="btn" data-git="kilavuz">Kullanım kılavuzu</button></div>
-  </section>
-
-  <section class="iki">
-    <div class="panel">
-      <h2>Nasıl çalışır?</h2>
-      <ul class="hk-liste">
-        <li>Her gün <b>yeni kelimeler</b> ve bolca alıştırma gelir; günlük yük, seni bunaltmayacak biçimde kendiliğinden dengelenir.</li>
-        <li>Her kelime üç yönden çalışılır: <b>anlama</b>, <b>bağlam</b> ve <b>üretme</b>.</li>
-        <li>Doğru cevapladığın alıştırma <b>1, 3, 7, 14, 30, 60, 180 ve 360</b> gün sonra yeniden sorulur; yanlış cevapladığın hemen başa döner.</li>
-        <li>${SEREF_METNI}</li>
-      </ul>
-      <p><button class="link" data-git="kilavuz">Ayrıntılar kılavuzda →</button></p>
-    </div>
-    <div class="panel">
+    <p class="hk-giris">AnadilimGibi, İngilizcesini geliştirmek ve kelime bilgisini <u>kalıcı olarak</u> artırmak isteyenler için <b>${U.yazar}</b> tarafından geliştirilen <u>tamamen ücretsiz</u> bir eğitim platformudur.
+      Aralıklı tekrar sistemini; alıştırmalar, yazdırılabilir bulmacalar ve oyunlarla birleştirip öğrenmeyi eğlenceli bir alışkanlık hâline getirmeyi amaçlar.
+      Uygulama, akademik ağırlıklı kelime listesi sayesinde YDS ve YÖKDİL'e hazırlananlar için de iyi bir yardımcıdır.</p>
+    <div class="hk-imza">
       <h2>Sözlük nasıl oluştu?</h2>
       <p>${SOZLUK_ACIKLAMA}</p>
     </div>
+    <div class="butonlar"><button class="btn" data-git="kilavuz">Kullanım kılavuzu</button></div>
   </section>
 
   <section class="panel">
-    <h2>Geliştirici</h2>
-    <p>AnadilimGibi, <b>${U.yazar}</b> tarafından geliştirildi. Uygulama, kendi İngilizce çalışmalarında kullandığı yöntemlerin ve biriktirdiği kelime listesinin herkesin işine yarayabileceği düşüncesiyle doğdu.
-      Reklam yoktur, ücret yoktur; bütün özellikler herkese sınırsız açıktır.</p>
+    <h2>Nasıl çalışır?</h2>
+    <ul class="hk-liste">
+      <li>Her gün <b>yeni kelimeler</b> ve bolca alıştırma gelir; günlük yük, seni bunaltmayacak biçimde kendiliğinden dengelenir.</li>
+      <li>Her kelime üç yönden çalışılır: <b>anlama</b>, <b>bağlam</b> ve <b>üretme</b>.</li>
+      <li>Doğru cevapladığın alıştırma <b>1, 3, 7, 14, 30, 60, 180 ve 360</b> gün sonra yeniden sorulur; yanlış cevapladığın hemen başa döner.</li>
+      <li>${SEREF_METNI}</li>
+    </ul>
+    <p><button class="link" data-git="kilavuz">Ayrıntılar kılavuzda →</button></p>
+  </section>
+
+  <section class="panel">
+    <h2>Geliştiriciden</h2>
+    <p>İngilizceyi seviyorum; daha doğrusu öğrenmeyi seviyorum. Yıllarca İngilizce eğitimi aldım, pek çok kez sınava girdim. Bugün de hem işimde hem günlük çalışmalarımda İngilizceyi kullanmaya devam ediyorum.</p>
+    <p>Bu yolda internette sayısız kaynakla ve platformla karşılaştım. Çoğunda ya bir ücret, ya araya giren reklamlar ya da “keşke şöyle olsaydı” dediğim bir eksik vardı.
+      AnadilimGibi'yi hazırlarken kullanıcısı benmişim gibi düşündüm ve o “keşke”lerin hepsini bir araya getirmeye çalıştım: ücretsiz, reklamsız ve İngilizce öğrenme fırsatı sunmaktan başka hiçbir amacı olmayan bir uygulama.</p>
+    <p>Başkalarının öğrenme yolculuğuna küçük de olsa bir katkım olsun istedim. Faydalanmak isteyen herkese bu imkânı sunabildiğim için mutluyum. Umarım beğenir, faydalanırsın; karşılığında bir teşekkür yeter. <span class="hk-imza-ad">— ${U.yazar}</span></p>
     <div class="iletisim">
       <div><b>Her türlü geri bildirim bizi memnun eder</b>
         <span class="soluk">Görüşünü, önerini ya da fark ettiğin bir hatayı paylaşırsan uygulamayı birlikte daha iyi hâle getiririz.${U.eposta ? ` E-posta: ${U.eposta}` : ''}</span></div>

@@ -196,7 +196,7 @@ const Etut = (() => {
     const E = etutVeri();
     E.ayar = { ...ayar };
     o = {
-      etut: true, tur: ayar.tur, sureSn: ayar.sure * 60, kalan: ayar.sure * 60, gecen: 0, bitti: false, sureDoldu: false,
+      etut: true, tur: ayar.tur, sureSn: ayar.sure * 60, ilkSureSn: ayar.sure * 60, kalan: ayar.sure * 60, gecen: 0, bitti: false, sureDoldu: false,
       havuz: havuz(ayar.kaynak, ayar.lv, ayar.tp), son: [], tekrar: [], kayit: [], baslangic: Date.now(), kaydedilen: 0,
     };
     oturum = o;
@@ -270,15 +270,17 @@ const Etut = (() => {
     tekAlistirma(it, b);
   }
   function sureDoldu() {
+    // 10 dakikalık etüt 10 dakika, diğerleri 20 dakika uzatılır
+    const ek = (o.ilkSureSn ?? o.sureSn) <= 10 * 60 ? 10 : 20;
     ana().innerHTML = `${ustHtml()}<section class="sahne orta">
       <p class="ust-baslik">Etüt süresi doldu</p>
       <h1>Güzel bir çalışmaydı! ⏳</h1>
-      <p class="soluk">${o.kayit.length} soru cevapladın. Etüdü tamamlayabilir ya da 20 dakika daha devam edebilirsin.</p>
-      <div class="butonlar orta"><button class="ana-btn" id="etutTamam">Tamamla</button><button class="btn" id="etutUzat">20 dakika daha</button></div>
+      <p class="soluk">${o.kayit.length} soru cevapladın. Etüdü tamamlayabilir ya da ${ek} dakika daha devam edebilirsin.</p>
+      <div class="butonlar orta"><button class="ana-btn" id="etutTamam">Tamamla</button><button class="btn" id="etutUzat">${ek} dakika daha</button></div>
     </section>`;
     ustBagla();
     $('#etutTamam').onclick = () => bitir();
-    $('#etutUzat').onclick = () => { o.kalan += 20 * 60; o.sureSn += 20 * 60; o.sureDoldu = false; sonraki(); };
+    $('#etutUzat').onclick = () => { o.kalan += ek * 60; o.sureSn += ek * 60; o.sureDoldu = false; sonraki(); };
   }
   function bitir() {
     if (!o) return;

@@ -174,7 +174,7 @@ const OyunParcacik = (() => {
     const kardes = karistir(ayni.filter(a => a.parca !== x.parca).map(a => a.parca)).slice(0, 1);
     const secenek = karistir([x.parca, ...kardes, ...yanlis]).slice(0, 4);
     if (!secenek.includes(x.parca)) secenek[0] = x.parca;
-    alan.innerHTML = `<p class="ust-baslik">Parçacık Tamamlama · Puan ${puan} · Seri ${seri}</p>
+    alan.innerHTML = `<p class="ust-baslik">Parçacık tamamlama · Puan ${puan} · Seri ${seri}</p>
       <div class="pt-fiil">${esc(x.fiil)} <span class="pt-bos">____</span></div>
       <p class="orta">${esc(x.k.tr)}</p>
       ${cumle ? `<div class="soru-ipucu cumle">${cumle.html}</div>` : ''}

@@ -230,7 +230,7 @@ function ekranKilavuz() {
     <nav class="kilavuz-icindekiler" aria-label="İçindekiler">${bolumler.map(([i, b], n) => `<a href="#kilavuz" data-bolum="k${n}">${b}</a>`).join('')}</nav>
   </section>
   ${bolumler.map(([i, b, h], n) => `<section class="panel kilavuz-bolum" id="k${n}"><h2>${ikon(i)} ${b}</h2>${h}</section>`).join('')}
-  <p class="orta soluk">Sorun, öneri ya da takıldığın bir yer mi var? <a href="https://instagram.com/${UYGULAMA.instagram}" target="_blank" rel="noopener">Instagram'dan yaz</a>, her türlü geri bildirim bizi memnun eder.</p>`;
+  <p class="orta soluk">Sorun, öneri ya da takıldığın bir yer mi var? <a href="https://instagram.com/${UYGULAMA.instagram}" target="_blank" rel="noopener">Instagram'dan yaz</a>, her türlü geri bildirim beni mutlu eder.</p>`;
   const yer = $('[data-kurulum-yer]');
   if (yer) yer.outerHTML = Kurulum.html('kilavuz');
   Kurulum.bagla();
@@ -272,13 +272,13 @@ function ekranHakkinda() {
 
   <section class="panel">
     <h2>Geliştiriciden</h2>
-    <p>İngilizceyi seviyorum; daha doğrusu öğrenmeyi seviyorum. Yıllarca İngilizce eğitimi aldım, pek çok kez sınava girdim. Bugün de hem işimde hem günlük çalışmalarımda İngilizceyi kullanmaya devam ediyorum.</p>
-    <p>Bu yolda internette sayısız kaynakla ve platformla karşılaştım. Çoğunda ya bir ücret, ya araya giren reklamlar ya da “keşke şöyle olsaydı” dediğim bir eksik vardı.
-      AnadilimGibi'yi hazırlarken kullanıcısı benmişim gibi düşündüm ve o “keşke”lerin hepsini bir araya getirmeye çalıştım: ücretsiz, reklamsız ve İngilizce öğrenme fırsatı sunmaktan başka hiçbir amacı olmayan bir uygulama.</p>
-    <p>Başkalarının öğrenme yolculuğuna küçük de olsa bir katkım olsun istedim. Faydalanmak isteyen herkese bu imkânı sunabildiğim için mutluyum. Umarım beğenir, faydalanırsın; karşılığında bir teşekkür yeter. <span class="hk-imza-ad">— ${U.yazar}</span></p>
+    <p>İngilizce, uzun yıllardır hem eğitim hem de iş hayatımın ayrılmaz bir parçası. Bu dili öğrenmek için yıllarca eğitim aldım, pek çok sınava girdim; bugün de işimde ve günlük çalışmalarımda kullanmaya devam ediyorum. Bu süreç bana, kalıcı öğrenmenin ancak düzenli ve sabırlı bir çalışmayla mümkün olduğunu öğretti.</p>
+    <p>Bugün İngilizce öğrenmek isteyenler için sayısız kaynak ve platform var. Ancak bunların önemli bir kısmı ya ücretli, ya reklamlarla dolu ya da kullanıcının gerçek ihtiyacını karşılamaktan uzak.
+      AnadilimGibi'yi geliştirirken kendimi kullanıcının yerine koydum ve yıllar içinde “keşke böyle olsaydı” dediğim her şeyi bir araya getirmeye çalıştım. Ortaya çıkan uygulama ücretsizdir, reklam içermez ve İngilizce öğrenmeye katkı sağlamaktan başka hiçbir amaç taşımaz.</p>
+    <p>Edindiğim birikimin başkalarına da faydalı olması benim için büyük bir memnuniyet. Uygulamadan yararlanan herkese iyi çalışmalar dilerim; bir teşekkür, benim için fazlasıyla yeterlidir. <span class="hk-imza-ad">— ${U.yazar}</span></p>
     <div class="iletisim">
-      <div><b>Her türlü geri bildirim bizi memnun eder</b>
-        <span class="soluk">Görüşünü, önerini ya da fark ettiğin bir hatayı paylaşırsan uygulamayı birlikte daha iyi hâle getiririz.${U.eposta ? ` E-posta: ${U.eposta}` : ''}</span></div>
+      <div><b>Her türlü geri bildirim beni mutlu eder</b>
+        <span class="soluk">Görüşünü, önerini ya da fark ettiğin bir hatayı paylaşırsan uygulamayı birlikte daha da iyi hâle getirebiliriz.${U.eposta ? ` E-posta: ${U.eposta}` : ''}</span></div>
       <a class="ana-btn" href="https://instagram.com/${U.instagram}" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
         @${U.instagram}</a>

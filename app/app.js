@@ -550,8 +550,9 @@ function yazma(it, k, ipucuVar) {
   const hedef = ip.yuzey || k.w;
   const harfSay = (hedef.replace(/\(.*?\)/g, '').match(/[A-Za-z]/g) || []).length;
   let acik = ipucuVar ? 1 : 0;
-  // Boşluklu cümlede Türkçe anlam da küçük bir ipucu olarak verilir
-  const trNot = ip.tip === 'c' ? `<p class="soluk orta kucuk">Türkçesi: ${esc(k.tr)}</p>` : '';
+  // Türkçe anlam ipucu yalnızca istenirse ("Anlamını göster") açılır
+  const anlamVar = ip.tip !== 'tr';
+  const trNot = anlamVar ? `<p class="soluk orta kucuk" id="anlamNot" hidden>Türkçesi: ${esc(k.tr)}</p>` : '';
   ana().innerHTML = `${ilerlemeCubugu()}<section class="sahne">
     <p class="ust-baslik">${ip.etiket} — İngilizcesini yaz</p>
     <div class="soru-ipucu ${ip.tip === 'c' ? 'cumle' : ''}">${ip.html}</div>
@@ -561,6 +562,7 @@ function yazma(it, k, ipucuVar) {
       <input id="cevap" spellcheck="false" autocapitalize="off" placeholder="cevabını yaz…" aria-label="Cevap">
       <button class="ana-btn">Kontrol</button>
       <button type="button" class="btn" id="harfGoster" title="Her dokunuşta bir harf açar">Harf göster</button>
+      ${anlamVar ? '<button type="button" class="btn" id="anlamGoster">Anlamını göster</button>' : ''}
       <button type="button" class="btn" id="bilmiyorum">Bilmiyorum</button>
     </form><div id="geri"></div></section>`;
   ustBagla();
@@ -574,12 +576,14 @@ function yazma(it, k, ipucuVar) {
   desenYaz();
   const inp = $('#cevap'); inp.focus();
   $('#harfGoster').onclick = () => { if (acik < harfSay - 1) { acik++; desenYaz(); } inp.focus(); };
+  if (anlamVar) $('#anlamGoster').onclick = () => { $('#anlamNot').hidden = false; $('#anlamGoster').disabled = true; inp.focus(); };
   let bitti = false;
   const bitir = (girdi) => {
     if (bitti) return; bitti = true;
     const s = girdi == null ? 'yanlis' : Metin.kontrol(girdi, k.w, ekler);
     const dogru = s !== 'yanlis';
     inp.disabled = true; inp.classList.add(dogru ? 'dogru' : 'yanlis'); $('#harfGoster').disabled = true;
+    if (anlamVar) $('#anlamGoster').disabled = true;
     cevapla(it, dogru, girdi == null ? '(boş bıraktın)' : girdi.trim(), k.w);
     const not = s === 'yakin' ? `<span class="not">Küçük bir yazım hatası vardı, doğru saydım.</span>` : '';
     $('#geri').innerHTML = sonucHtml(k, dogru, not);

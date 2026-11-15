@@ -100,6 +100,7 @@ button:disabled { opacity: .5; cursor: default; }
 .yaz { display: flex; gap: .5rem; flex-wrap: wrap; }
 .yaz input { flex: 1 1 220px; padding: .75rem 1rem; font-size: 1.15rem; border-radius: 10px; border: 1.5px solid var(--cizgi); background: var(--yuzey); }
 .yaz input:focus { outline: 2px solid var(--vurgu); outline-offset: 1px; }
+@media (max-width: 600px) { .yaz > .btn, .yaz > .ana-btn { flex: 1 1 40%; justify-content: center; } }
 .desen { text-align: center; font-family: ui-monospace, Consolas, monospace; font-size: 1.15rem; letter-spacing: .05em; white-space: pre-wrap; }
 .kk-pr { color: var(--soluk); font-size: .95rem; }
 

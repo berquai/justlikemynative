@@ -117,16 +117,19 @@ const Takvim = (() => {
     const ozet = calisilan
       ? `${AYLAR[mo - 1]} ayında <b>${calisilan} gün</b> çalıştın, <b>${yeni}</b> yeni kelimeyle tanıştın ve <b>${cevap.toLocaleString('tr-TR')}</b> cevap verdin.${tamam ? ` <b>${tamam} gün</b> tekrarlarının tamamını bitirdin.` : ''}`
       : `${AYLAR[mo - 1]} ayında henüz çalışma kaydın yok.`;
-    return `<div class="tk-ust">
+    return `<div class="tk-duzen"><div>
+      <div class="tk-ust">
         <button class="btn kucuk-btn" data-tk="-1" aria-label="Önceki ay">‹</button>
         <b>${AYLAR[mo - 1]} ${y}</b>
         <button class="btn kucuk-btn" data-tk="1" aria-label="Sonraki ay">›</button>
       </div>
       <div class="tk-izgara">${['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'].map(x => `<div class="tk-baslik">${x}</div>`).join('')}${hucreler.join('')}</div>
+      </div><div class="tk-yan">
       <p class="tk-ozet">${ozet}</p>
       <div class="tk-aciklama"><span><i class="tk-ornek s1"></i><i class="tk-ornek s2"></i><i class="tk-ornek s4"></i> daha koyu: daha çok cevap</span>
         <span><small class="tk-yeni">+5</small> yeni kelime</span><span><i class="tk-tamam">✓</i> tekrarlar tamamlandı</span>
-        <span><i class="tk-kaldi"></i> tekrar kaldı</span><span><small class="tk-plan">12</small> planlı tekrar</span></div>`;
+        <span><i class="tk-kaldi"></i> tekrar kaldı</span><span><small class="tk-plan">12</small> planlı tekrar</span></div>
+      </div></div>`;
   }
   function bagla(kap) {
     kap.querySelectorAll('[data-tk]').forEach(b => b.onclick = () => {
@@ -140,7 +143,7 @@ const Takvim = (() => {
 
 function ekranIstatistik() {
   const S = Istat.ozet(), t = bugun();
-  const yuzde = (a, b) => b ? Math.round(100 * a / b) + '%' : '–';
+  const yuzde = (a, b) => b ? '%' + Math.round(100 * a / b) : '–';
   const sayi = n => n.toLocaleString('tr-TR');
   const tarihKisa = d => new Date(d + 'T12:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
 
@@ -190,10 +193,12 @@ function ekranIstatistik() {
     return o;
   };
   const bu = donem(0), once = donem(7);
+  // Önceki 7 günde hiç çalışma yoksa karşılaştırma yapılmaz (ilk hafta her şey "artış" görünmesin)
+  const onceVar = !!(once.r || once.n);
   const fark = (a, b, birim = '') => {
-    if (a == null || b == null) return '<small class="fark">–</small>';
+    if (!onceVar || a == null || b == null) return '<small class="fark soluk">karşılaştırma yok</small>';
     const f = a - b;
-    return `<small class="fark ${f > 0 ? 'artis' : f < 0 ? 'dusus' : ''}">${f > 0 ? '▲' : f < 0 ? '▼' : '='} ${f ? Math.abs(f) + birim : 'aynı'} <span class="soluk">önceki 7 güne göre</span></small>`;
+    return `<small class="fark ${f > 0 ? 'artis' : f < 0 ? 'dusus' : ''}">${f > 0 ? '▲ ' + f + birim : f < 0 ? '▼ ' + -f + birim : '= aynı'}</small>`;
   };
   const karsi = (deger, ad, f) => `<div class="stat"><b>${deger}</b><span>${ad}</span>${f}</div>`;
   let yorum;
@@ -245,6 +250,7 @@ function ekranIstatistik() {
       ${karsi(sayi(bu.n), 'yeni kelime', fark(bu.n, once.n))}
       ${karsi(`${bu.gun}/7`, 'çalışılan gün', fark(bu.gun, once.gun, ' gün'))}
     </div>
+    <p class="gelisim-not">${onceVar ? '▲ ▼ işaretleri, son 7 günü ondan önceki 7 günle karşılaştırır.' : 'Karşılaştırma, ikinci haftandan itibaren görünür: son 7 gün, ondan önceki 7 günle kıyaslanır.'}</p>
     <div class="iki-grafik">
       <div>
         <h3>Haftalık doğruluk</h3>

@@ -43,7 +43,10 @@ const Bulut = (() => {
     // Son eşitlemeden beri yalnızca bir taraf değiştiyse onu al; ikisi de değiştiyse kullanıcıya sor.
     async function esitle() {
       if (!s.bagli()) return;
-      if (!s.erisim()) return durumla(`${s.ad} oturumunun süresi doldu. Eşitlemek için yeniden bağlan.`, true, true);
+      if (!s.erisim()) {
+        if (s.sureDoldu && s.sureDoldu()) return; // sağlayıcı oturumu kendisi yeniliyor (ilk dokunuşta)
+        return durumla(`${s.ad} oturumunun süresi doldu. Eşitlemek için yeniden bağlan.`, true, true);
+      }
       if (calisiyor) { tekrar = true; return; }
       calisiyor = true; clearTimeout(zamanlayici); zamanlayici = null;
       try {
@@ -160,6 +163,24 @@ const Bulut = (() => {
         return fetch(`${API}/upload/drive/v3/files/${st.id}?uploadType=media`, { method: 'PATCH', headers: basliklar({ 'Content-Type': 'application/json' }), body: metin, keepalive: true });
       },
     };
+    // Google erişim izni 1 saat geçerlidir ve sunucusuz uygulamada ancak bir dokunuşla yenilenebilir.
+    // Süre dolmuşsa uyarı göstermek yerine, kullanıcının uygulamadaki ilk dokunuşunda izni sessizce yeniler.
+    let otoBekliyor = false, otoHata = false;
+    const DRIVE_DUGMELERI = '#gBaglan, #gEsitle, #gKes, [data-bulut-giris]';
+    function otoDinle(ev) {
+      if (!bagli() || erisim()) { otoBirak(); return; }
+      if (!istemci || ev.target.closest?.(DRIVE_DUGMELERI)) return; // kitaplık henüz yüklenmediyse sonraki dokunuşu bekle
+      otoBirak();
+      oturumAc(false)
+        .then(() => e.esitle())
+        .catch(x => { otoHata = true; e.durumla('Google Drive oturumu yenilenemedi: ' + x.message, true, true); });
+    }
+    function otoBirak() { otoBekliyor = false; document.removeEventListener('click', otoDinle, true); }
+    s.sureDoldu = () => {
+      if (otoHata) return false; // bu açılışta denendi ve olmadı: bandı göster, kullanıcı kendisi bağlansın
+      if (!otoBekliyor) { otoBekliyor = true; document.addEventListener('click', otoDinle, true); }
+      return true;
+    };
     const e = motor(s);
     async function hesapAdi() {
       try {
@@ -168,6 +189,7 @@ const Bulut = (() => {
       } catch (x) { }
     }
     async function baglan() {
+      otoBirak(); otoHata = false;
       try {
         const ilk = !bagli();
         await oturumAc(ilk);
@@ -187,7 +209,7 @@ const Bulut = (() => {
       if (bagli()) return `<div class="bulut-kart bagli">
           <div class="bk-ust">${GOOGLE_LOGO}<div><b>Google Drive</b><small>${st.hesap ? esc(st.hesap) : 'bağlı'} · <span class="iyi-yazi">bağlı ✓</span></small></div></div>
           <p class="soluk kucuk">İlerlemen Drive'ındaki <b>${DOSYA}</b> dosyasında tutuluyor. Çalışırken ve uygulamadan çıkarken gönderilir,
-            açınca diğer cihazlarda yaptığın çalışma alınır.${erisim() ? '' : ' Google güvenlik gereği oturumu her saat yeniler; eşitlemek için “Şimdi eşitle”ye dokun.'}</p>
+            açınca diğer cihazlarda yaptığın çalışma alınır.${erisim() ? '' : ' Google güvenlik gereği oturumu saatte bir yeniletir; bu, uygulamada ilk dokunuşunda kendiliğinden yapılır (ekran bir anlığına Google\'a gidip döner).'}</p>
           <div class="butonlar"><button class="ana-btn" id="gEsitle">Şimdi eşitle</button><button class="btn" id="gKes">Bağlantıyı kes</button></div>${d}</div>`;
       return `<div class="bulut-kart">
           <p class="soluk">Google hesabınla giriş yap; ilerlemen Google Drive'ına kaydedilsin ve telefon, bilgisayar fark etmeden kaldığın yerden devam et.

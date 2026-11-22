@@ -213,7 +213,7 @@ function geriYukle(id) {
 }
 
 /* ---------- Ekleme / düzenleme formu ---------- */
-const TURLER = ['noun', 'verb', 'adjective', 'adverb', 'phrasal verb', 'phrase', 'idiom', 'preposition', 'conjunction', 'grammar', 'noun/verb'];
+const TURLER = ['noun', 'verb', 'adjective', 'adverb', 'phrasal verb', 'phrase', 'collocation', 'idiom', 'preposition', 'conjunction', 'grammar', 'noun/verb'];
 
 function kelimeFormu(id = null, on = {}) {
   const k = id ? KID.get(id) : null;
@@ -242,7 +242,7 @@ function kelimeFormu(id = null, on = {}) {
         <label>Yeni Türkçe anlam <input name="yTr" placeholder="mevcut anlamların sonuna eklenir"></label>
         <label>Yeni İngilizce tanım <input name="yD" placeholder="mevcut tanımın sonuna eklenir"></label>
         <label>Yeni örnek cümle <input name="yEx" placeholder="örnek cümlelere eklenir"></label>
-      </fieldset>` : `<label class="yan"><input type="checkbox" name="hemen" checked> Hemen öğrenmeye başla (bir sonraki çalışmada ilk sırada gelsin)</label>`}
+      </fieldset>` : `<label class="yan"><input type="checkbox" name="hemen"> Hemen öğrenmeye başla (bir sonraki çalışmada ilk sırada gelsin)</label>`}
       <div class="butonlar">
         <button class="ana-btn">${k ? 'Değişiklikleri kaydet' : 'Sözlüğe ekle'}</button>
         <button type="button" class="btn" data-kapat>Vazgeç</button>

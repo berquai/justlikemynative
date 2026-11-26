@@ -293,7 +293,7 @@ function kelimeFormu(id = null, on = {}) {
       pr: F.pr.value.trim(), p: F.p.value.trim(),
       tr: ekle(F.tr.value.trim(), F.yTr?.value || '', '; '),
       d: ekle(F.d.value.trim(), F.yD?.value || '', '; '),
-      ex: [...F.ex.value.split('\n'), F.yEx?.value || ''].map(s => s.trim()).filter(Boolean),
+      ex: tekilOrnek([...F.ex.value.split('\n'), F.yEx?.value || ''].map(s => s.trim()).filter(Boolean)),
     };
     if (!yeni.w || !yeni.tr) { alert('İngilizce kelime ve Türkçe anlam zorunlu.'); return; }
     const m = mevcutKontrol();

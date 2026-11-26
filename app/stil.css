@@ -62,6 +62,10 @@ button:disabled { opacity: .5; cursor: default; }
 .ozet b { font-size: 2rem; line-height: 1; color: var(--vurgu); }
 .ozet span { font-size: .9rem; line-height: 1.25; }
 .ozet small { color: var(--soluk); }
+.sinir-ilerleme { display: flex; align-items: center; gap: .7rem; font-size: .85rem; color: var(--soluk); margin-top: -.4rem; }
+.sinir-ilerleme .cubuk { flex: 1; height: 6px; border-radius: 3px; background: var(--yuzey2); overflow: hidden; }
+.sinir-ilerleme .cubuk i { display: block; height: 100%; background: var(--vurgu); border-radius: 3px; }
+.sinir-ilerleme b { color: var(--yazi, inherit); font-weight: 600; font-variant-numeric: tabular-nums; }
 .iki { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
 .iki .panel { margin: 0; }
 .durum-cubuk { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--d-yeni); }

@@ -20,15 +20,20 @@ const MEZUN = '9999-12-31';
 const MODLAR = { r: 'Anlama', c: 'Bağlam', p: 'Üretme' };
 const USTA = 5; // bu kutuya ulaşan mod "pekişmiş" sayılır (14 günlük aralığı geçmiş)
 
+// Aynı örnek cümle iki kez görünmesin (büyük/küçük harf ve boşluk farkı yok sayılır)
+function tekilOrnek(ex) {
+  const gor = new Set();
+  return (ex || []).filter(c => { const a = String(c).trim().replace(/\s+/g, ' ').toLowerCase(); return a && !gor.has(a) && gor.add(a); });
+}
 function sozlukKur() {
   const o = P.sozluk || {};
   const m = new Map();
   const silik = v => v === null || (v && v.silindi);
   for (const k of K_TABAN) {
     if (silik(o[k.id])) continue;            // silinmiş
-    m.set(k.id, o[k.id] ? { ...k, ...o[k.id], id: k.id } : k);
+    m.set(k.id, o[k.id] ? { ...k, ...o[k.id], id: k.id, ex: tekilOrnek(o[k.id].ex || k.ex) } : k);
   }
-  for (const [id, v] of Object.entries(o)) if (v && !silik(v) && !m.has(id)) m.set(id, { ...v, id });
+  for (const [id, v] of Object.entries(o)) if (v && !silik(v) && !m.has(id)) m.set(id, { ...v, id, ex: tekilOrnek(v.ex) });
   K_TABAN_ID ||= new Set(K_TABAN.map(k => k.id));
   K = [...m.values()];
   KID = m;
@@ -135,7 +140,9 @@ function vadesiGelenler(t = bugun()) {
    - Günün başındaki tekrar yükü (g.yuk) sınırı aşıyorsa o gün yeni kelime verilmez;
      sınırın yarısının altındaysa ayarlardaki sayı tam verilir; arada kademeli olarak azalır.
    - Her yeni kelime aynı gün 2–3 soru getirdiği için yeni kelime ancak kalan soru hakkına sığdığı kadar verilir. */
-const SINIR_SECENEK = [25, 50, 100];
+const SINIR_SECENEK = [25, 50, 75, 100, 150, 200]; // hızlı seçim önerileri; istenen değer elle de girilebilir
+const SINIR_MIN = 10, SINIR_MAX = 500;
+const sinirDuzelt = v => { v = Math.round(+v); return v >= SINIR_MIN ? Math.min(SINIR_MAX, v) : 50; };
 const ETUT_HAZIR = true; // Etüt Köşesi açık: menüde görünür, sınır mesajı Etüt'e yönlendirir
 const sinirMesaji = () => 'Bugünlük bu kadar yeter. Kalan tekrarlar yarına bırakıldı' +
   (ETUT_HAZIR ? '; daha fazla çalışmak istersen Etüt Köşesi seni bekliyor.' : '.');
@@ -143,7 +150,7 @@ function gunPlani(t = bugun()) {
   const g = gunKaydi(t);
   const vade = vadesiGelenler(t);
   if (g.yuk == null) g.yuk = vade.length; // günün başındaki tekrar yükü
-  const sinir = SINIR_SECENEK.includes(+P.ayar.sinir) ? +P.ayar.sinir : 50;
+  const sinir = sinirDuzelt(P.ayar.sinir);
   const kalanSoru = Math.max(0, sinir - (g.q || 0));
   const yari = sinir / 2;
   const oran = g.yuk >= sinir ? 0 : g.yuk <= yari ? 1 : (sinir - g.yuk) / yari;
@@ -308,8 +315,11 @@ function ekranBugun() {
     <div class="ozet">
       <div class="kutu"><b>${yeniHak}</b><span>yeni kelime${tekrarTanit ? `<br><small>+${tekrarTanit} güncellenen</small>` : ''}</span></div>
       <div class="kutu"><b>${plan.planli}</b><span>tekrar alıştırması<br><small>${vadeKelime} kelime${yarina > 0 ? ` · ${yarina} yarına` : ''}</small></span></div>
-      <div class="kutu"><b>${g.r ? Math.round(100 * g.ok / g.r) + '%' : '–'}</b><span>bugünkü başarı<br><small>${g.q || 0}/${plan.sinir} soru</small></span></div>
+      <div class="kutu"><b>${g.r ? Math.round(100 * g.ok / g.r) + '%' : '–'}</b><span>bugünkü başarı<br><small>${g.r ? `${g.r} cevaptan ${g.ok} doğru` : 'henüz cevap yok'}</small></span></div>
     </div>
+    <div class="sinir-ilerleme" title="Günlük rutinde sorulacak en fazla soru; Ayarlar'dan değiştirebilirsin">
+      <span>Günlük soru sınırı</span><div class="cubuk"><i style="width:${Math.min(100, Math.round(100 * (g.q || 0) / plan.sinir))}%"></i></div>
+      <b>${g.q || 0}/${plan.sinir}</b></div>
     ${plan.doldu ? `<p class="bilgi">${sinirMesaji()} <button class="link" data-git="etut">Etüt Köşesi'ne git →</button></p>`
       : plan.azaltildi ? `<p class="soluk kucuk">Bekleyen tekrarların çok olduğu için bugün yeni kelime sayısı azaltıldı. Tekrarlar azaldıkça yeni kelimeler kendiliğinden geri gelir.</p>` : ''}
     <div class="butonlar">
@@ -1114,8 +1124,9 @@ function ekranAyar() {
     <form id="ayarForm" class="form-izgara">
       <label>Günlük yeni kelime sayısı <input type="number" name="gunluk" min="0" max="50" value="${P.ayar.gunluk}"></label>
       <label>Günlük soru sınırı
-        <select name="sinir">${SINIR_SECENEK.map(n => `<option value="${n}" ${+P.ayar.sinir === n ? 'selected' : ''}>${n} soru${n === 50 ? ' (önerilen)' : ''}</option>`).join('')}</select>
-        <small class="soluk">Günlük rutinde sorulacak en fazla soru. Fazlası yarına kalır, böylece tekrarlar seni bunaltmaz.</small></label>
+        <input type="number" name="sinir" min="${SINIR_MIN}" max="${SINIR_MAX}" step="1" list="sinirOneri" value="${sinirDuzelt(P.ayar.sinir)}" required>
+        <datalist id="sinirOneri">${SINIR_SECENEK.map(n => `<option value="${n}">${n === 50 ? 'önerilen' : ''}</option>`).join('')}</datalist>
+        <small class="soluk">Günlük rutinde sorulacak en fazla soru (${SINIR_MIN}–${SINIR_MAX}, önerilen 50). Fazlası yarına kalır, böylece tekrarlar seni bunaltmaz.</small></label>
       <label>Ses
         <select name="ses"><option value="">Otomatik (İngiliz İngilizcesi öncelikli)</option>
         ${sesler.map(v => `<option value="${esc(v.name)}" ${v.name === P.ayar.ses ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select></label>
@@ -1160,7 +1171,7 @@ function ekranAyar() {
     e.preventDefault();
     const f = new FormData(e.target);
     P.ayar.gunluk = Math.max(0, Math.min(50, +f.get('gunluk') || 0));
-    P.ayar.sinir = SINIR_SECENEK.includes(+f.get('sinir')) ? +f.get('sinir') : 50;
+    P.ayar.sinir = sinirDuzelt(f.get('sinir'));
     P.ayar.ses = f.get('ses'); P.ayar.hiz = +f.get('hiz'); P.ayar.otoSes = !!f.get('otoSes'); P.ayar.yds = !!f.get('yds');
     kaydet(); bildir('Ayarlar kaydedildi');
   };

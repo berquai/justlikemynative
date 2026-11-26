@@ -245,7 +245,7 @@ function ekranKilavuz() {
   const etut = typeof ETUT_HAZIR !== 'undefined' && ETUT_HAZIR;
   const bolumler = [
     ['rutin', 'Günlük rutin', `<p><b>Bugün</b> ekranı o gün ne yapacağını gösterir: kaç yeni kelime, kaç tekrar. <b>Çalışmaya başla</b>'ya dokun; önce yeni kelimelerle tanışırsın, ardından tekrar zamanı gelen alıştırmalar karışık sırayla gelir.</p>
-      <p>Günlük rutin, seni yormayacak bir tempoda tutulur. Tekrarlar birikirse uygulama yeni kelimeleri kendiliğinden azaltır, tekrarlar eridikçe geri getirir; böylece hiçbir gün altından kalkamayacağın bir yük oluşmaz. Günlük yeni kelime sayısını ve günlük soru sayısını (25, 50 ya da 100) Ayarlar'dan kendine göre seçebilirsin.</p>`],
+      <p>Günlük rutin, seni yormayacak bir tempoda tutulur. Tekrarlar birikirse uygulama yeni kelimeleri kendiliğinden azaltır, tekrarlar eridikçe geri getirir; böylece hiçbir gün altından kalkamayacağın bir yük oluşmaz. Günlük yeni kelime sayısını ve günlük soru sınırını (önerilen 50; istediğin sayıyı yazabilirsin) Ayarlar'dan kendine göre belirleyebilirsin.</p>`],
     ['uc', 'Üç alıştırma türü', `<ul><li><b>Anlama</b> (İngilizce → Türkçe): Kelimeyi görür ya da dinlersin, anlamını seçersin.</li>
       <li><b>Bağlam</b> (boşluklu cümle): Örnek cümledeki boşluğa uyan kelimeyi bulursun.</li>
       <li><b>Üretme</b> (Türkçe ya da tanım → İngilizce): Kelimeyi kendin yazarsın.</li></ul>

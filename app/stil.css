@@ -66,6 +66,10 @@ button:disabled { opacity: .5; cursor: default; }
 .sinir-ilerleme .cubuk { flex: 1; height: 6px; border-radius: 3px; background: var(--yuzey2); overflow: hidden; }
 .sinir-ilerleme .cubuk i { display: block; height: 100%; background: var(--vurgu); border-radius: 3px; }
 .sinir-ilerleme b { color: var(--yazi, inherit); font-weight: 600; font-variant-numeric: tabular-nums; }
+.hizli-sec { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .45rem; }
+.hizli-sec button { font: inherit; font-size: .82rem; padding: .25rem .65rem; border-radius: 999px; border: 1px solid var(--cizgi, #d0d4d9); background: var(--yuzey, transparent); color: var(--yazi); cursor: pointer; }
+.hizli-sec button:hover { border-color: var(--vurgu); }
+.hizli-sec button.secili { background: var(--vurgu); border-color: var(--vurgu); color: var(--vurgu-yazi); }
 .iki { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
 .iki .panel { margin: 0; }
 .durum-cubuk { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--d-yeni); }

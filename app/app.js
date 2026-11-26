@@ -1124,8 +1124,8 @@ function ekranAyar() {
     <form id="ayarForm" class="form-izgara">
       <label>Günlük yeni kelime sayısı <input type="number" name="gunluk" min="0" max="50" value="${P.ayar.gunluk}"></label>
       <label>Günlük soru sınırı
-        <input type="number" name="sinir" min="${SINIR_MIN}" max="${SINIR_MAX}" step="1" list="sinirOneri" value="${sinirDuzelt(P.ayar.sinir)}" required>
-        <datalist id="sinirOneri">${SINIR_SECENEK.map(n => `<option value="${n}">${n === 50 ? 'önerilen' : ''}</option>`).join('')}</datalist>
+        <input type="number" name="sinir" min="${SINIR_MIN}" max="${SINIR_MAX}" step="1" inputmode="numeric" value="${sinirDuzelt(P.ayar.sinir)}" required>
+        <span class="hizli-sec" role="group" aria-label="Hızlı seçim">${SINIR_SECENEK.map(n => `<button type="button" class="${sinirDuzelt(P.ayar.sinir) === n ? 'secili' : ''}" data-sinir="${n}"${n === 50 ? ' title="Önerilen"' : ''}>${n}${n === 50 ? ' ★' : ''}</button>`).join('')}</span>
         <small class="soluk">Günlük rutinde sorulacak en fazla soru (${SINIR_MIN}–${SINIR_MAX}, önerilen 50). Fazlası yarına kalır, böylece tekrarlar seni bunaltmaz.</small></label>
       <label>Ses
         <select name="ses"><option value="">Otomatik (İngiliz İngilizcesi öncelikli)</option>
@@ -1167,6 +1167,11 @@ function ekranAyar() {
       <label class="btn">Yedekten yükle<input type="file" id="yedekYukle" accept=".json,application/json" hidden></label>
       <button class="btn tehlike" id="sifirla">Tüm ilerlemeyi sıfırla</button></div>
   </section>`;
+  // Günlük soru sınırı: hızlı seçim düğmeleri kutuyu doldurur; elle yazılan değerle seçili düğme eşlenir
+  const sinirInp = $('#ayarForm [name=sinir]');
+  const sinirIsaretle = () => document.querySelectorAll('[data-sinir]').forEach(b => b.classList.toggle('secili', +b.dataset.sinir === +sinirInp.value));
+  document.querySelectorAll('[data-sinir]').forEach(b => b.onclick = e => { e.preventDefault(); sinirInp.value = b.dataset.sinir; sinirIsaretle(); });
+  sinirInp.addEventListener('input', sinirIsaretle);
   $('#ayarForm').onsubmit = e => {
     e.preventDefault();
     const f = new FormData(e.target);
